@@ -74,7 +74,7 @@ output would mark every `d[1-4]_tip_left` `visible=1` ("in dataset, unlabeled") 
 than `visible=0` ("not part of this dataset") — training on that would teach the model
 to predict a suppressed heatmap for fingers that are there but were simply never
 labeled. A
-`POST_PROCESS["kaufman"]` entry in `scripts/convert_dataset.py` forces the `_left`
+`POST_PROCESS["kaufman"]` entry in `mighty_mouse/convert.py` forces the `_left`
 forepaw columns (`d[1-4]_tip_left`, plus `wrist_left` if it's ever mapped) to
 `visible=0` after the standard split processing (same pattern as `hantman-mv`). The
 lateralized face keypoints added in version 1 (`eye_*`, `ear_*`, `pad_*`) are *not*

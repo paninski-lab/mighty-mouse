@@ -73,8 +73,9 @@ python scripts/preprocessing/hantman-mv/convert_hantman_mv.py --seed 1
 `configs/datasets/hantman-mv.yaml` keeps `d1_tip`/`d2_tip`/`d3_tip`/`d4_tip` (lateralized,
 newly added to `configs/keypoints.yaml`/`configs/model.yaml`), `eye_back`/`eye_top`/
 `eye_front`/`eye_bottom` (lateralized, already canonical), `nose_tip`/`nose_bottom`
-(midline, already canonical), and the computed `wrist_new` (lateralized to
-`wrist_{side}`, already canonical — see the 2026-09-15 entry in `CHANGELOG.md`). All 54 sessions are
+(midline, already canonical), the computed `wrist_new` (lateralized to
+`wrist_{side}`, already canonical — see the 2026-09-15 entry in `CHANGELOG.md`), and
+`nose_top` (midline, already canonical; added 2026-09-29 for manual labeling). All 54 sessions are
 declared `right` (single hand, per the raw source). Everything else — the digit
 `_middle`/`_base` joints, `hand_middle`/`hand_lateral`/`hand_medial`, source `wrist`,
 `pellet` — is excluded.
@@ -83,7 +84,7 @@ Only one side was ever filmed, so the default per-split output would mark every 
 counterpart of a lateralized keypoint `visible=1` ("in dataset, unlabeled") rather than
 `visible=0` ("not part of this dataset") — training on that would teach the model to
 predict a suppressed heatmap for a side that was simply never assessed. A
-`POST_PROCESS["hantman-mv"]` entry in `scripts/convert_dataset.py` forces every `_left`
+`POST_PROCESS["hantman-mv"]` entry in `mighty_mouse/convert.py` forces every `_left`
 column to `visible=0` after the standard split processing, **except** the four
 `ear_*_left` columns (see the 2026-09-17 entry in `CHANGELOG.md`), which are
 deliberately left at `visible=1` instead.
