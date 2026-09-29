@@ -1,0 +1,43 @@
+name: Run tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies (no lightning-pose)
+        # the unit tests never import lightning_pose, and its torch + nvidia-dali deps are
+        # large -- install everything else from pyproject.toml
+        run: |
+          pip install -e ".[dev]" --no-deps
+          python - <<'EOF'
+          import subprocess, tomllib
+          with open('pyproject.toml', 'rb') as f:
+              cfg = tomllib.load(f)
+          deps = (
+              cfg['project']['dependencies']
+              + cfg['project']['optional-dependencies']['dev']
+          )
+          deps = [d for d in deps if not d.startswith('lightning-pose')]
+          subprocess.run(['pip', 'install'] + deps, check=True)
+          EOF
+
+      - name: Run tests
+        run: pytest

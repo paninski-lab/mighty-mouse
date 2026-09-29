@@ -1,0 +1,45 @@
+name: Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# To cancel a currently running workflow from the same PR, branch or tag when a new workflow is triggered
+# https://stackoverflow.com/a/72408109
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install ruff
+        # pinned to the same version as .pre-commit-config.yaml so CI and local hooks agree
+        run: pip install ruff==0.15.12
+
+      - name: Lint with ruff
+        id: ruff
+        # same scope as .pre-commit-config.yaml; scripts/ is not yet lint-clean
+        run: ruff check mighty_mouse tests
+        # Reads config from [tool.ruff.lint] in pyproject.toml
+
+      - name: Show fix instructions if linting failed
+        if: always() && steps.ruff.outcome == 'failure'
+        run: |
+          echo ""
+          echo "Linting failed!"
+          echo ""
+          echo "To auto-fix issues locally, run:"
+          echo "  ruff check --fix mighty_mouse tests"
+          echo ""
+          echo "To see all violations without fixing, run:"
+          echo "  ruff check mighty_mouse tests"
+          echo ""

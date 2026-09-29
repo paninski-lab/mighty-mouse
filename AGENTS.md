@@ -77,6 +77,10 @@ public functions. Ruff (`pyproject.toml`) is the source of truth for anything it
   build small synthetic DataFrames/configs rather than reading real datasets.
 - Mock at the boundary with `unittest.mock` (e.g. `patch("mighty_mouse.configs.repo_root")`,
   `patch.dict` on registries like `POST_PROCESS`).
+- CI (`.github/workflows/tests.yml`) installs every dependency *except* lightning-pose,
+  so tested modules must not import `lightning_pose` at module level (import it inside the
+  function that needs it, as `mighty_mouse/train.py` does), and any package they import
+  directly must be listed in `pyproject.toml` rather than arriving via lightning-pose.
 
 **Scripts that write to real data.** `scripts/build_dataset.py` has no `--data_dir`
 override and always writes into `data_dir` from `paths.yaml` — don't run it as a smoke
