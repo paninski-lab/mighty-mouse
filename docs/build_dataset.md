@@ -92,11 +92,13 @@ than on the merged test set as a whole.
 
 ## Commands run to build `data/head-fixed_v2`
 
-`build_dataset.py` has no `--data_dir` override (unlike `convert_dataset.py`) — it always
-writes to whatever `data_dir` in `paths.yaml` currently points at. The convention is to
+At the time of this build `build_dataset.py` had no `--data_dir` override — it always
+wrote to whatever `data_dir` in `paths.yaml` pointed at. (It has one now, so the next
+version can be built into its own directory while models keep training from the current
+one — no `paths.yaml` repointing or separate worktree needed.) The convention was to
 leave `paths.yaml` pointed at the unversioned working path (`data/head-fixed`), run the
 full pipeline there, then rename the directory once everything succeeds. Adding tags to
-an existing frozen version later (as in step 5 below) means pointing `data_dir` at that
+an existing frozen version later (as in step 5 below) meant pointing `data_dir` at that
 version directly instead (`data/head-fixed_v2`), since there's no unversioned scratch dir
 to build into anymore once it's been renamed:
 

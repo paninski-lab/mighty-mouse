@@ -16,44 +16,34 @@ Pass --n_frames -1 to instead take every available frame from every dataset,
 unbalanced. By convention tags built this way drop the frame count from their
 name (e.g. "face+cheese"), while balanced tags include it (e.g. "face+cheese-600").
 
+--data_dir overrides data_dir from paths.yaml, for both input and output (e.g. to build
+the next data version without repointing paths.yaml under a run that's training from it).
+Sampling logic lives in mighty_mouse/build.py.
+
 Usage:
   python scripts/build_dataset.py --tag face+ibl-600 --datasets facemap ibl --n_frames 600
   python scripts/build_dataset.py --tag face+ibl     --datasets facemap ibl --n_frames -1
+  python scripts/build_dataset.py --tag face+ibl-600 --datasets facemap ibl --data_dir data_v3/
 """
 
 import argparse
-import hashlib
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
+from mighty_mouse.build import build_merged, dataset_rng, subsample
 from mighty_mouse.datasets import ALL_DATASETS
 from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 
-_paths   = load_paths()
-DATA_DIR = Path(_paths["data_dir"])
 
-
-def build_merged(per_dataset_dfs: list[tuple[str, pd.DataFrame]]) -> pd.DataFrame:
-    """Concatenate per-dataset DataFrames. All CSVs share identical columns so a plain concat suffices."""
-    return pd.concat([df for _, df in per_dataset_dfs])
-
-
-def _dataset_rng(seed: int, name: str) -> np.random.Generator:
-    """Independent RNG per dataset — same frames regardless of which other datasets are included."""
-    h = int(hashlib.sha256(name.encode()).hexdigest(), 16) % (2 ** 32)
-    return np.random.default_rng([seed, h])
-
-
-def main(datasets: list[str], n_frames: int, seed: int, tag: str) -> None:
-    train_dfs: list[tuple[str, pd.DataFrame]] = []
-    test_dfs:  list[tuple[str, pd.DataFrame]] = []
+def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: str) -> None:
+    train_dfs: list[pd.DataFrame] = []
+    test_dfs:  list[pd.DataFrame] = []
 
     for name in datasets:
-        train_csv = DATA_DIR / f"CollectedData_{name}_train.csv"
-        test_csv  = DATA_DIR / f"CollectedData_{name}_test.csv"
+        train_csv = data_dir / f"CollectedData_{name}_train.csv"
+        test_csv  = data_dir / f"CollectedData_{name}_test.csv"
 
         if not train_csv.exists():
             print(f"WARNING: {train_csv.name} not found — skipping {name}")
@@ -63,22 +53,16 @@ def main(datasets: list[str], n_frames: int, seed: int, tag: str) -> None:
         train_df = read_labels_csv(train_csv)
         print(f"  Train: {len(train_df)} frames available")
 
-        if n_frames < 0:
-            n = len(train_df)
-        else:
-            n = min(n_frames, len(train_df))
-            if n < n_frames:
-                print(f"  WARNING: only {n} frames available (requested {n_frames})")
-        rng    = _dataset_rng(seed, name)
-        idx    = rng.choice(len(train_df), size=n, replace=False)
-        sample = train_df.iloc[sorted(idx)]
+        if 0 <= n_frames and len(train_df) < n_frames:
+            print(f"  WARNING: only {len(train_df)} frames available (requested {n_frames})")
+        sample = subsample(train_df, n_frames, dataset_rng(seed, name))
         print(f"  Sampled {len(sample)} frames")
-        train_dfs.append((name, sample))
+        train_dfs.append(sample)
 
         if test_csv.exists():
             test_df = read_labels_csv(test_csv)
             print(f"  Test:  {len(test_df)} frames")
-            test_dfs.append((name, test_df))
+            test_dfs.append(test_df)
         else:
             print(f"  WARNING: {test_csv.name} not found — skipping test split for {name}")
 
@@ -88,21 +72,21 @@ def main(datasets: list[str], n_frames: int, seed: int, tag: str) -> None:
 
     print("\n── merged train ────────────────────────────────────")
     merged_train = build_merged(train_dfs)
-    merged_train_path = DATA_DIR / f"CollectedData_{tag}_train.csv"
+    merged_train_path = data_dir / f"CollectedData_{tag}_train.csv"
     merged_train.to_csv(merged_train_path)
     print(f"  {len(merged_train)} rows → {merged_train_path.name}")
 
     if test_dfs:
         print("\n── merged test ─────────────────────────────────────")
         merged_test = build_merged(test_dfs)
-        merged_test_path = DATA_DIR / f"CollectedData_{tag}_test.csv"
+        merged_test_path = data_dir / f"CollectedData_{tag}_test.csv"
         merged_test.to_csv(merged_test_path)
         print(f"  {len(merged_test)} rows → {merged_test_path.name}")
 
     print("\nDone.")
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build combined dataset from pre-converted per-dataset CSVs.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -118,8 +102,20 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--n_frames", type=int, default=600,
-        help="frames to sample per dataset (default: 600); -1 = use every available frame, no subsampling",
+        help="frames to sample per dataset (default: 600); "
+             "-1 = use every available frame, no subsampling",
     )
-    parser.add_argument("--seed",     type=int, default=42,  help="random seed (default: 42)")
+    parser.add_argument("--seed", type=int, default=42, help="random seed (default: 42)")
+    parser.add_argument(
+        "--data_dir", type=Path, default=None,
+        help="directory to read converted CSVs from and write merged CSVs to "
+             "(default: data_dir from paths.yaml)",
+    )
     args = parser.parse_args()
-    main(args.datasets, args.n_frames, args.seed, args.tag)
+
+    data_dir = args.data_dir or Path(load_paths()["data_dir"])
+    build(data_dir, args.datasets, args.n_frames, args.seed, args.tag)
+
+
+if __name__ == "__main__":
+    main()

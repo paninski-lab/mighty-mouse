@@ -254,6 +254,7 @@ mighty-mouse/
     labels.py                   LP label-CSV conventions (reader, scorer, session/frame names)
     convert.py                  per-dataset conversion logic + POST_PROCESS hooks
                                  (CLI: scripts/convert_dataset.py)
+    build.py                    per-dataset subsampling + merging (CLI: scripts/build_dataset.py)
     datasets.py                 ALL_DATASETS (datasets in the combined corpus)
     subject_split.py            shared subject-level train/test split
     videos.py                   video snippet + motion-energy helpers
@@ -349,6 +350,10 @@ to or read from directly. The convention is:
 2. Run the full convert → build (→ train) pipeline there
 3. Once it succeeds, rename the directory to freeze it: `data/head-fixed` → `data/head-fixed_vN`,
    `results/head-fixed` → `results/head-fixed_vN`
+
+If models are training from the unversioned path, don't repoint `paths.yaml` under them: both
+`convert_dataset.py` and `build_dataset.py` take `--data_dir`, so the next version can be built
+straight into its own directory instead.
 
 **Keep `data/head-fixed_vN` and `results/head-fixed_vN` numbering in lockstep** — results trained
 against `data/head-fixed_v1` belong in `results/head-fixed_v1`, not `results/head-fixed_v2`. A
