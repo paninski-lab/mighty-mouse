@@ -26,6 +26,7 @@ you'll hit often have their own docs under `skills/<name>/SKILL.md` (plain markd
 short `name`/`description` frontmatter — readable by any agent, not just Claude):
 
 - **Onboarding a new raw dataset** → [`skills/preprocess-new-dataset/SKILL.md`](skills/preprocess-new-dataset/SKILL.md)
+- **Adding new (empty) keypoints to an existing raw dataset for labeling** → [`skills/add-keypoints-to-raw-dataset/SKILL.md`](skills/add-keypoints-to-raw-dataset/SKILL.md)
 - **Versioning a dataset's label CSVs** → [`skills/bump-dataset-version/SKILL.md`](skills/bump-dataset-version/SKILL.md)
 - **Training a standalone LP model on one raw dataset** → [`skills/train-lightning-pose-model/SKILL.md`](skills/train-lightning-pose-model/SKILL.md)
 - **Pseudo-labeling a raw dataset (from another dataset's model, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
