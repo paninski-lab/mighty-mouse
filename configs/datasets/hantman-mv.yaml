@@ -25,6 +25,7 @@ keypoints:
   eye_bottom: eye_bottom_{side}
   nose_tip: nose_tip
   nose_bottom: nose_bottom
+  nose_top: nose_top
   wrist_new: wrist_{side}
   ear_top: ear_top_{side}
   ear_tip: ear_tip_{side}

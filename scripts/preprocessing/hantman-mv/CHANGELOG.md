@@ -4,6 +4,15 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
 
 ## Changelog
 
+### 2026-09-29 (MW) (version 1)
+- Added `nose_top` as a new keypoint to `project.yaml` + both `CollectedData*.csv` files
+  (via `scripts/add_keypoints.py`), and manually labeled it in the LP app in every frame
+  (192/192 train, 30/30 test, front and side views). The canonical name already existed
+  in `configs/keypoints.yaml`/`model.yaml`; mapped `nose_top: nose_top` (midline) in
+  [`configs/datasets/hantman-mv.yaml`](../../../configs/datasets/hantman-mv.yaml).
+- Manually adjusted `nose_tip` in front-view frames (27 train, 12 test; median shift
+  ~4 px, max ~8 px). No side-view `nose_tip` labels changed.
+
 ### 2026-09-26 (MW) (version 0)
 - First versioned snapshot of hantman-mv's label CSVs. This predates the
   versioning scheme, so v0 is the best-available current state rather than a
