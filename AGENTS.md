@@ -83,6 +83,7 @@ public functions. Ruff (`pyproject.toml`) is the source of truth for anything it
   function that needs it, as `mighty_mouse/train.py` does), and any package they import
   directly must be listed in `pyproject.toml` rather than arriving via lightning-pose.
 
-**Scripts that write to real data.** `scripts/build_dataset.py` has no `--data_dir`
-override and always writes into `data_dir` from `paths.yaml` — don't run it as a smoke
-test. `scripts/transfer_pseudo_labels.py` edits raw label CSVs in place.
+**Scripts that write to real data.** `scripts/convert_dataset.py` and
+`scripts/build_dataset.py` write into `data_dir` from `paths.yaml` unless given
+`--data_dir` — always pass a scratch `--data_dir` when smoke-testing them.
+`scripts/transfer_pseudo_labels.py` edits raw label CSVs in place.
