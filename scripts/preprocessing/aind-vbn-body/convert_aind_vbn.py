@@ -14,13 +14,18 @@ Conversion is a concat of the per-session CSVs (scorer normalized to "aind-vbn",
 it varies by annotator and would otherwise misalign columns), copying only the
 labeled images, plus a 15 s clip of each session's video.
 
-Body only: each frame is cropped to the face + upper trunk and resized to 256x256.
-With H = |nose_tip.x - eye_mid.x| (eye_mid = mean of eye_top_l/eye_bottom_l) and
-C = mean(nose_tip, eye_mid), the crop box is [C-2H, C+3H] in both x and y. Frames
-missing nose or eyes use the session's median H and C. Keypoints are shifted/scaled
-with the crop and set to NaN if they land outside it. The *_lh, *_rh and tail_*
-keypoints are dropped entirely. Each session's video clip is cropped with that session's
-median box (median H, cx, cy over its labeled frames) and resized to 256x256.
+Both views: each frame is cropped and resized to 256x256, the *_lh, *_rh and tail_*
+keypoints are dropped entirely, keypoints are shifted/scaled with the crop and set to NaN
+if they land outside it, and each session's video clip is cropped with that session's
+median box (over its labeled frames) and resized to 256x256. Frames missing the keypoints
+used for the box use the session median.
+
+Body crop (face + upper trunk): with H = |nose_tip.x - eye_mid.x| (eye_mid = mean of eye_top_l/eye_bottom_l) and
+C = mean(nose_tip, eye_mid), the crop box is [C-2H, C+3H] in both x and y (session
+median H and C).
+
+Face crop: a fixed 300x300 px box relative to nose_tip, x in [nose-120, nose+180] and y in
+[nose-200, nose+100] (session median nose position).
 
 Split is subject-level by mouse id (second '_'-delimited token of the session), via
 mighty_mouse.subject_split. The test mice are always chosen from the *body* dataset's
@@ -86,9 +91,27 @@ def box_from(h: pd.Series, cx: pd.Series, cy: pd.Series) -> pd.DataFrame:
     return pd.DataFrame({"x0": cx - 2 * h, "y0": cy - 2 * h, "side": 5 * h})
 
 
+def face_boxes(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Fixed-size boxes around nose_tip; frames lacking it get the session median nose."""
+    nose = pd.DataFrame(
+        {"nx": df[(SCORER, "nose_tip", "x")], "ny": df[(SCORER, "nose_tip", "y")]}
+    )
+    sessions = session_of_index(df.index)
+    med = nose.groupby(sessions).median()
+    assert med.notna().all().all(), "a session has no frame with nose_tip"
+    nose = nose.fillna(nose.groupby(sessions).transform("median"))
+
+    def box(n: pd.DataFrame) -> pd.DataFrame:
+        return pd.DataFrame(
+            {"x0": n.nx - 120, "y0": n.ny - 200, "side": pd.Series(300.0, index=n.index)}
+        )
+
+    return box(nose), box(med)
+
+
 def crop_boxes(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Per-frame (x0, y0, side) crop boxes, and per-session boxes from the median H, C over
-    each session's frames with nose + eyes. Frames lacking nose/eyes get the session median."""
+    """Body: per-frame (x0, y0, side) crop boxes, and per-session boxes from the median H, C
+    over each session's frames with nose + eyes. Frames lacking nose/eyes get the session median."""
     xy = lambda bp: (df[(SCORER, bp, "x")].to_numpy(), df[(SCORER, bp, "y")].to_numpy())
     (nx, ny), (ex1, ey1), (ex2, ey2) = xy("nose_tip"), xy("eye_top_l"), xy("eye_bottom_l")
     ex, ey = (ex1 + ex2) / 2, (ey1 + ey2) / 2
@@ -161,12 +184,11 @@ def main() -> None:
     print(f"mice: {len(train_mice)} train, {len(test_mice)} test ({sorted(test_mice)})")
 
     df, videos = load_view(source_dir, VIEW_TO_CAMERA[args.view])
-    if args.view == "body":
-        keep = [c for c in df.columns if not (c[1].endswith(DROP_SUFFIXES) or c[1].startswith(DROP_PREFIXES))]
-        df = df[keep]
-        boxes, session_boxes = crop_boxes(df)
-        df = crop_keypoints(df, boxes)
-        print(f"  cropped to {CROP_SIZE}x{CROP_SIZE}; kept {len(df.columns) // 2} keypoints")
+    keep = [c for c in df.columns if not (c[1].endswith(DROP_SUFFIXES) or c[1].startswith(DROP_PREFIXES))]
+    df = df[keep]
+    boxes, session_boxes = (crop_boxes if args.view == "body" else face_boxes)(df)
+    df = crop_keypoints(df, boxes)
+    print(f"  cropped to {CROP_SIZE}x{CROP_SIZE}; kept {len(df.columns) // 2} keypoints")
     sessions = session_of_index(df.index)
     is_test = sessions.map(mouse_of).isin(test_mice)
     print(f"{args.view}: {len(df)} frames, {len(videos)} sessions, {len(df.columns) // 2} keypoints")
@@ -175,39 +197,30 @@ def main() -> None:
         split_df.to_csv(out_dir / name)
         print(f"  {name}: {len(split_df)} frames ({len(split_df) / len(df):.1%})")
 
-    # copy only labeled images (cropped + resized for body)
+    # copy only labeled images (cropped + resized)
     src_proj = {s: p.parents[1] for s, p in videos.items()}
     for rel in df.index:
         session = Path(rel).parts[-2]
         src, dst = src_proj[session] / rel, out_dir / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if args.view == "body":
-            b = boxes.loc[rel]
-            cv2.imwrite(str(dst), crop_image(src, b.x0, b.y0, b.side))
-        else:
-            shutil.copy2(src, dst)
+        b = boxes.loc[rel]
+        cv2.imwrite(str(dst), crop_image(src, b.x0, b.y0, b.side))
 
     # 15 s clip per session video; test-mouse sessions go to videos_test/
     for session, video in videos.items():
         clip_dir = out_dir / ("videos_test" if mouse_of(session) in test_mice else "videos")
-        if args.view == "body":
-            tmp_dir = out_dir / ".clips_full"
-            full, _, _ = make_video_snippet(
-                video, tmp_dir, clip_length=CLIP_LENGTH, skip_start=CLIP_SKIP_START, from_start=True
-            )
-            clip_dir.mkdir(exist_ok=True)
-            dst = clip_dir / full.name
-            b = session_boxes.loc[session]
-            crop_video(full, dst, b.x0, b.y0, b.side)
-            full.unlink()
-        else:
-            dst, _, _ = make_video_snippet(
-                video, clip_dir, clip_length=CLIP_LENGTH, skip_start=CLIP_SKIP_START, from_start=True
-            )
+        tmp_dir = out_dir / ".clips_full"
+        full, _, _ = make_video_snippet(
+            video, tmp_dir, clip_length=CLIP_LENGTH, skip_start=CLIP_SKIP_START, from_start=True
+        )
+        clip_dir.mkdir(exist_ok=True)
+        dst = clip_dir / full.name
+        b = session_boxes.loc[session]
+        crop_video(full, dst, b.x0, b.y0, b.side)
+        full.unlink()
         print(f"  {video.name} -> {dst.relative_to(out_dir)}")
 
-    if args.view == "body":
-        shutil.rmtree(out_dir / ".clips_full", ignore_errors=True)
+    shutil.rmtree(out_dir / ".clips_full", ignore_errors=True)
 
     project = {
         "keypoint_names": [b for b in dict.fromkeys(df.columns.get_level_values("bodyparts"))],
