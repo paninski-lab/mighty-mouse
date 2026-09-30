@@ -20,9 +20,9 @@ if they land outside it, and each session's video clip is cropped with that sess
 median box (over its labeled frames) and resized to 256x256. Frames missing the keypoints
 used for the box use the session median.
 
-Body crop (face + upper trunk): with H = |nose_tip.x - eye_mid.x| (eye_mid = mean of eye_top_l/eye_bottom_l) and
-C = mean(nose_tip, eye_mid), the crop box is [C-2H, C+3H] in both x and y (session
-median H and C).
+Body crop (face + upper trunk): with H = |nose_tip.x - eye_mid.x| (eye_mid = mean of
+eye_top_l/eye_bottom_l) and C = mean(nose_tip, eye_mid), the crop box is [C-2H, C+3H] in
+both x and y (session median H and C).
 
 Face crop: a fixed 300x300 px box relative to nose_tip, x in [nose-120, nose+180] and y in
 [nose-200, nose+100] (session median nose position).
@@ -111,8 +111,12 @@ def face_boxes(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def crop_boxes(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Body: per-frame (x0, y0, side) crop boxes, and per-session boxes from the median H, C
-    over each session's frames with nose + eyes. Frames lacking nose/eyes get the session median."""
-    xy = lambda bp: (df[(SCORER, bp, "x")].to_numpy(), df[(SCORER, bp, "y")].to_numpy())
+    over each session's frames with nose + eyes. Frames lacking nose/eyes get the session
+    median."""
+
+    def xy(bp: str) -> tuple[np.ndarray, np.ndarray]:
+        return df[(SCORER, bp, "x")].to_numpy(), df[(SCORER, bp, "y")].to_numpy()
+
     (nx, ny), (ex1, ey1), (ex2, ey2) = xy("nose_tip"), xy("eye_top_l"), xy("eye_bottom_l")
     ex, ey = (ex1 + ex2) / 2, (ey1 + ey2) / 2
     boxes = pd.DataFrame(
@@ -146,7 +150,8 @@ def crop_image(src: Path, x0: float, y0: float, side: float) -> np.ndarray:
     scale = CROP_SIZE / side
     # affine warp handles sub-pixel offsets, out-of-bounds padding and resize in one step
     M = np.array([[scale, 0, -x0 * scale], [0, scale, -y0 * scale]])
-    return cv2.warpAffine(img, M, (CROP_SIZE, CROP_SIZE), flags=cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR)
+    interp = cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR
+    return cv2.warpAffine(img, M, (CROP_SIZE, CROP_SIZE), flags=interp)
 
 
 def crop_keypoints(df: pd.DataFrame, boxes: pd.DataFrame) -> pd.DataFrame:
@@ -157,7 +162,8 @@ def crop_keypoints(df: pd.DataFrame, boxes: pd.DataFrame) -> pd.DataFrame:
         df[col] = (df[col] - off) * scale
     for bp in dict.fromkeys(df.columns.get_level_values("bodyparts")):
         x, y = df[(SCORER, bp, "x")], df[(SCORER, bp, "y")]
-        outside = ~((x >= 0) & (x < CROP_SIZE) & (y >= 0) & (y < CROP_SIZE)) & (x.notna() | y.notna())
+        inside = (x >= 0) & (x < CROP_SIZE) & (y >= 0) & (y < CROP_SIZE)
+        outside = ~inside & (x.notna() | y.notna())
         df.loc[outside, [(SCORER, bp, "x"), (SCORER, bp, "y")]] = np.nan
     return df
 
@@ -167,7 +173,9 @@ def session_of_index(index: pd.Index) -> pd.Series:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--view", choices=VIEW_TO_CAMERA, required=True)
     parser.add_argument("--seed", type=int, default=0, help="subject-split seed (default: 0)")
     args = parser.parse_args()
@@ -180,20 +188,27 @@ def main() -> None:
     # test mice come from the body dataset so both views hold out the same animals
     body_df, _ = load_view(source_dir, VIEW_TO_CAMERA["body"])
     body_mice = session_of_index(body_df.index).map(mouse_of)
-    train_mice, test_mice = subject_split(body_mice.value_counts().to_dict(), args.seed, TEST_FRACTION)
+    train_mice, test_mice = subject_split(
+        body_mice.value_counts().to_dict(), args.seed, TEST_FRACTION
+    )
     print(f"mice: {len(train_mice)} train, {len(test_mice)} test ({sorted(test_mice)})")
 
     df, videos = load_view(source_dir, VIEW_TO_CAMERA[args.view])
-    keep = [c for c in df.columns if not (c[1].endswith(DROP_SUFFIXES) or c[1].startswith(DROP_PREFIXES))]
+    keep = [
+        c for c in df.columns
+        if not (c[1].endswith(DROP_SUFFIXES) or c[1].startswith(DROP_PREFIXES))
+    ]
     df = df[keep]
     boxes, session_boxes = (crop_boxes if args.view == "body" else face_boxes)(df)
     df = crop_keypoints(df, boxes)
     print(f"  cropped to {CROP_SIZE}x{CROP_SIZE}; kept {len(df.columns) // 2} keypoints")
     sessions = session_of_index(df.index)
     is_test = sessions.map(mouse_of).isin(test_mice)
-    print(f"{args.view}: {len(df)} frames, {len(videos)} sessions, {len(df.columns) // 2} keypoints")
+    n_kps = len(df.columns) // 2
+    print(f"{args.view}: {len(df)} frames, {len(videos)} sessions, {n_kps} keypoints")
 
-    for name, split_df in (("CollectedData.csv", df[~is_test]), ("CollectedData_test.csv", df[is_test])):
+    splits = (("CollectedData.csv", df[~is_test]), ("CollectedData_test.csv", df[is_test]))
+    for name, split_df in splits:
         split_df.to_csv(out_dir / name)
         print(f"  {name}: {len(split_df)} frames ({len(split_df) / len(df):.1%})")
 
