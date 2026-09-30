@@ -120,6 +120,23 @@ class TestPostProcess:
         assert _vis(result, "d1_tip_right") == [1.0, 1.0]
         assert _vis(result, "eye_top_left") == [1.0, 1.0]
 
+    def test_post_process_aind_vbn_face(self, make_processed_df: Callable):
+        df = make_processed_df({
+            "eye_top_right": [1.0, 1.0],
+            "pad_top_right": [1.0, 1.0],
+            "ear_top_right": [1.0, 1.0],
+            "eye_top_left": [1.0, 2.0],     # labeled side: untouched
+            "d1_tip_right": [1.0, 2.0],     # right fingers really are labeled: untouched
+        })
+
+        result = post_process(df, {}, "aind-vbn-face")
+
+        assert _vis(result, "eye_top_right") == [0.0, 0.0]
+        assert _vis(result, "pad_top_right") == [0.0, 0.0]
+        assert _vis(result, "ear_top_right") == [0.0, 0.0]
+        assert _vis(result, "eye_top_left") == [1.0, 2.0]
+        assert _vis(result, "d1_tip_right") == [1.0, 2.0]
+
 
 class TestRawDatasetDir:
     """Test the function raw_dataset_dir."""

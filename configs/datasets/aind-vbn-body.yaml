@@ -1,0 +1,48 @@
+exclude:
+  keypoints:
+    - nostril_l
+    - nostril_r
+    - jaw
+    - tongue_base_l
+    - tongue_base_r
+    - paw_forward_l
+    - paw_forward_r
+    - paw_wrist_l
+    - paw_wrist_r
+    - pinky_l
+    - pinky_r
+    - ring_finger_l
+    - ring_finger_r
+    - middle_finger_l
+    - middle_finger_r
+    - pointer_finger_l
+    - pointer_finger_r
+  sessions:
+
+keypoints:
+  eye_top_l: eye_top_{side}
+  eye_bottom_l: eye_bottom_{side}
+  whisker_pad_l_top: pad_top_{side}
+  whisker_pad_l_side: pad_side_{side}
+  ear_tip_l: ear_top_{side}
+  ear_base_l: ear_bottom_{side}
+  nose_tip: nose_tip
+  tongue_tip: tongue_tip
+
+sessions:
+  1044385384_524761_20200819.behavior: left
+  1046166369_527294_20200826.behavior: left
+  1051155866_524760_20200917.behavior: left
+  1052533639_530862_20200924.behavior: left
+  1053925378_532246_20201001.behavior: left
+  1056495334_531237_20201014.behavior: left
+  1065437523_544358_20201123.behavior: left
+  1065908084_544838_20201124.behavior: left
+  1070961372_544835_20201216.behavior: left
+  1079278078_548717_20210128.behavior: left
+  1108528422_571520_20210610.behavior: left
+  1120251466_578003_20210805.behavior: left
+  1121406444_574081_20210811.behavior: left
+  1122903357_570302_20210818.behavior: left
+  1125713722_578257_20210901.behavior: left
+  1128520325_585326_20210915.behavior: left

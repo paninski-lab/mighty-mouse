@@ -110,9 +110,28 @@ def _post_process_kaufman(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     return suppress_occluded(df, kps)
 
 
+# aind-vbn-face: the face camera only ever labeled the left side of the face (eye_*, pad_*,
+# ear_* are mapped directly to _left names in configs/datasets/aind-vbn-face.yaml; the
+# source has no right-side labels for them), so every eye_*/pad_*/ear_* _right column is
+# entirely missing -- an annotation gap, not occlusion. process_split()'s default (vis=1)
+# would train the model that these are occluded keypoints. Force vis=0 (excluded from the
+# loss entirely, no opinion) instead. The right-side finger tips (d*_tip_right) really are
+# labeled, so they're left alone.
+_FACE_RIGHT_PREFIXES = ("eye_", "pad_", "ear_")
+
+
+def _post_process_aind_vbn_face(df: pd.DataFrame, config: dict) -> pd.DataFrame:
+    kps = [
+        kp for kp in df.columns.get_level_values(1).unique()
+        if kp.startswith(_FACE_RIGHT_PREFIXES) and kp.endswith("_right")
+    ]
+    return suppress_occluded(df, kps)
+
+
 POST_PROCESS: dict[str, Callable[[pd.DataFrame, dict], pd.DataFrame]] = {
     "hantman-mv": _post_process_hantman_mv,
     "kaufman": _post_process_kaufman,
+    "aind-vbn-face": _post_process_aind_vbn_face,
 }
 
 
