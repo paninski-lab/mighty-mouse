@@ -5,7 +5,7 @@ See [`README.md`](README.md) for the conversion pipeline (shared with
 
 ## Changelog
 
-### 2026-09-29 (MW)
+### 2026-09-29 (MW) (version 0)
 - Initial conversion from the `.face` projects in `_raw/_dlc/aind-vbn` via
   `convert_aind_vbn.py --view face`: 564 frames (490 train / 74 test, 16 sessions, same 2
   test mice as `aind-vbn-body`), plus 15 s clips of each session video.
