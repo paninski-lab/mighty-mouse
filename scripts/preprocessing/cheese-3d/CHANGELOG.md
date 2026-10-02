@@ -15,14 +15,29 @@ as-is.
 
 ## Changelog
 
-### 2026-09-23 (MW)
-- Started manual adjustment of ear labels.
+### 2026-10-02 (MW) (version 2)
+- Replaced all non-pupil pseudo-labels (27 keypoints) with a confidence-thresholded
+  ensemble mean from three `cheese-2d` models (`results/cheese-2d/`, `vits_dinov2`,
+  trained on `cheese-2d` train+test with canonical `_left`/`_right` names and `hflip`,
+  differing in data seed). Per cell, predictions with likelihood >= 0.9 are kept and their
+  (x, y) averaged; if no member reaches 0.9 the cell is left blank, replacing whatever
+  label was there before. `pupil_center_left`/`pupil_center_right` are unchanged.
+- Added `wrist_left` and `wrist_right` as new keypoints (appended to the CSVs and
+  `project.yaml`), pseudo-labeled by the same ensemble; mapped in
+  [`configs/datasets/cheese-3d.yaml`](../../../configs/datasets/cheese-3d.yaml).
+- Net label changes vs. version 1 (train / test cells): 853 / 205 lost a label (mostly
+  `eye(back)` in one view, plus ear tips/tops and a few `lowerlip`), 2,118 / 608 gained one
+  (wrists, plus ear tips/bottoms, `nose(bottom)`, `pad(center)`). Per-keypoint counts:
+  `results/cheese-3d/ensemble-pseudo-labels/label_change_report.csv`. Script:
+  `scripts/ensemble_pseudo_labels.py`.
+- Removed all unlabeled frames (temporal-context and other) from `labeled-data/`, so every
+  image has a row and vice versa (2,178 images; originals remain in `_raw/_dlc/cheese-3d`).
 
-### 2026-09-23 (MW)
+### 2026-09-23 (MW) (version 1)
 - Dropped sessions from the original `cheese-3d` dataset: subjects `B31` and `B6` from
   train, and the `chew_temperature` sessions for `B32` and `B33` from test.
 
-### 2026-09-22 (LA)
+### 2026-09-22 (LA) (version 0)
 - Added pupil pseudo-labels (`pupil_center_left`/`pupil_center_right`) by running the
   fully trained MM model on the existing train/test images and keeping predictions with
   confidence >= 0.70. Candidates were visually reviewed, clear misplacements were
@@ -31,6 +46,8 @@ as-is.
   were excluded. Appended to versioned CSV copies — existing annotations and the
   train/test split are unchanged, and the original raw data was not modified. These
   remain approximate pseudo-labels pending further manual refinement.
+- Version 0 is these CSVs as received (`_raw/_dlc/cheese-3d/CollectedData{,_test}.csv`),
+  unedited: 2,700 train / 900 test rows (450/150 moments x 6 views).
 
 ### Spring 2026 (LA)
 - Created the `cheese-3d` dataset by distilling `cheese-2d`: an ensemble of three
@@ -50,7 +67,7 @@ as-is.
   pose-diverse representative frames per session (cluster-centroid-nearest frame).
 - A final reprojection-error quality filter (mean Euclidean distance between the
   ensemble's original 2D predictions and the triangulated/reprojected labels, averaged
-  over confident keypoints/views) discarded the worst 25% of frames.
+  overconfident keypoints/views) discarded the worst 25% of frames.
 - Final train/test sets: 450/150 instances, all six views per instance, `NaN` where
   triangulation wasn't possible.
 - See the appendix of Wang et al., 2026 (arXiv), "BEAST 3D: Animal behavioral analysis
