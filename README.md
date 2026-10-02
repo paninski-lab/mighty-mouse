@@ -244,6 +244,7 @@ mighty-mouse/
     bump_version.py             snapshot a raw dataset's label CSVs as a new version (see skills/bump-dataset-version)
     add_keypoints.py            add empty keypoint columns to a raw dataset (see skills/add-keypoints-to-raw-dataset)
     transfer_pseudo_labels.py   write model predictions into one raw dataset's label CSVs (see skills/transfer-pseudo-labels)
+    ensemble_pseudo_labels.py   overwrite a raw dataset's labels with a confidence-thresholded mean of several models (see skills/transfer-pseudo-labels)
     preprocessing/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
       extract_clips.py          cut short high-motion clips from raw videos for review

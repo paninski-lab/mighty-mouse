@@ -1,6 +1,6 @@
 ---
 name: transfer-pseudo-labels
-description: Use when the user wants to write model predictions into one raw dataset's (_raw/<dataset>/) label CSVs — filling empty cells from another dataset's model ("transfer the cheese-3d model's predictions onto cheese-2d", "pseudo-label the missing whisker pad keypoints"), from a collaborator's precomputed predictions CSVs, or iteratively bootstrapping from the dataset's own hand-corrected rows ("train on the first N rows, then overwrite the rest"). Edits that dataset's CollectedData CSVs in place; never bumps the version.
+description: Use when the user wants to write model predictions into one raw dataset's (_raw/<dataset>/) label CSVs — filling empty cells from another dataset's model ("transfer the cheese-3d model's predictions onto cheese-2d", "pseudo-label the missing whisker pad keypoints"), from a collaborator's precomputed predictions CSVs, or iteratively bootstrapping from the dataset's own hand-corrected rows ("train on the first N rows, then overwrite the rest"), or overwriting labels with a confidence-thresholded mean of an ensemble of models. Edits that dataset's CollectedData CSVs in place; never bumps the version.
 ---
 
 # Transferring pseudo-labels into a raw dataset's label CSVs
@@ -25,6 +25,10 @@ All three are separate from — and upstream of — the combined-corpus pipeline
 `scripts/transfer_pseudo_labels.py` does the actual work. This file covers the
 decisions to confirm with the user *before* running it — none of them are recoverable
 from the data alone — plus the gotchas the script's design works around.
+
+- **Ensemble overwrite** — several models (e.g. seeds of one config) are run on the target's
+  images and combined by a confidence-thresholded mean; see
+  [below](#ensemble-overwrite-ensemble_pseudo_labelspy).
 
 ## Decision checklist (ask before running)
 
@@ -134,6 +138,37 @@ Expect the confidence threshold to filter almost nothing here: likelihoods sat a
 0.999 for kaufman, even on test sessions the model never trained on (frames there vary
 little between sessions and animals). That's expected, not a bug — accuracy is judged
 by the user's manual pass, not by the threshold.
+
+## Ensemble overwrite (`ensemble_pseudo_labels.py`)
+
+Used for cheese-3d (2026-10-01, version 2): three `cheese-2d` models (same config, different
+`rng_seed_data_pt`) pseudo-label `cheese-3d`. Unlike `transfer_pseudo_labels.py`, which takes
+one model and only keeps cells that clear the threshold, this one **always replaces** the
+requested columns: per cell, members with likelihood >= the threshold (0.9 there) survive,
+the new label is their mean (x, y), and it's **blank if none survive** — so it can erase
+existing labels. Columns not in `--keypoints` are never touched.
+
+```
+python scripts/ensemble_pseudo_labels.py \
+    --model_dirs <run0> <run1> <run2> --target_dataset <name> \
+    --out_dir results/<name>/ensemble-pseudo-labels \
+    --keypoints "pred_name=target_name" ... --dry_run
+```
+
+- `--keypoints` is `pred_name=target_name` per entry because the models' names (canonical
+  `_left`/`_right`) usually differ from the target's raw column names. Build the list from
+  `configs/datasets/<target>.yaml` (target raw name -> canonical name), minus any columns that
+  should be left alone (cheese-3d: the pupils).
+- A keypoint the models predict but the target lacks (cheese-3d: wrists) has to exist as a
+  column first — `skills/add-keypoints-to-raw-dataset`.
+- `--out_dir` caches each member's predictions (reused on re-run, so the dry run's inference
+  isn't repeated for the real write) and gets `label_change_report.csv`: per keypoint and CSV,
+  cells that lost / gained a label and how many members (0-3) cleared the threshold. Share it;
+  the changelog entry should summarize it.
+- Checklist items 1-5 above still apply (keypoint overlap, threshold, scope), plus: confirm that
+  blanking below-threshold cells is intended. Back up the live CSVs first and verify cell by
+  cell afterwards (non-edited columns unchanged; edited cells equal the recomputed mean).
+- Same as the single-model script: never bumps the version.
 
 ## What the script guarantees
 

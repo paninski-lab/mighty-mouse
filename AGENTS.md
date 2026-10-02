@@ -29,7 +29,7 @@ short `name`/`description` frontmatter — readable by any agent, not just Claud
 - **Adding new (empty) keypoints to an existing raw dataset for labeling** → [`skills/add-keypoints-to-raw-dataset/SKILL.md`](skills/add-keypoints-to-raw-dataset/SKILL.md)
 - **Versioning a dataset's label CSVs** → [`skills/bump-dataset-version/SKILL.md`](skills/bump-dataset-version/SKILL.md)
 - **Training a standalone LP model on one raw dataset** → [`skills/train-lightning-pose-model/SKILL.md`](skills/train-lightning-pose-model/SKILL.md)
-- **Pseudo-labeling a raw dataset (from another dataset's model, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
+- **Pseudo-labeling a raw dataset (from another dataset's model, an ensemble of models, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
 
 Read the relevant one before starting the task — they have hard-won detail (what
 to ask before converting a dataset, why a version bump can refuse as a no-op, etc.)
@@ -86,4 +86,4 @@ public functions. Ruff (`pyproject.toml`) is the source of truth for anything it
 **Scripts that write to real data.** `scripts/convert_dataset.py` and
 `scripts/build_dataset.py` write into `data_dir` from `paths.yaml` unless given
 `--data_dir` — always pass a scratch `--data_dir` when smoke-testing them.
-`scripts/transfer_pseudo_labels.py` edits raw label CSVs in place.
+`scripts/transfer_pseudo_labels.py` and `scripts/ensemble_pseudo_labels.py` edit raw label CSVs in place.
