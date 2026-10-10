@@ -29,9 +29,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
+from mighty_mouse.labeling.ensemble import ensemble, predict
 from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 
@@ -44,52 +44,6 @@ def parse_keypoints(specs: list[str]) -> list[tuple[str, str]]:
         pred_kp, _, target_kp = spec.partition("=")
         pairs.append((pred_kp, target_kp or pred_kp))
     return pairs
-
-
-def predict(model, csv_path: Path, data_dir: Path, tmp: Path, tag: str) -> pd.DataFrame:
-    """Run `model` on the images listed in `csv_path`. Only the image paths matter, so a
-    label-free CSV with the model's own keypoint columns is used as input (the target's
-    columns needn't match the model's). Its basename is unique per target/csv, so it can't
-    collide with the model's self-eval predictions (see transfer_pseudo_labels.py)."""
-    index = read_labels_csv(csv_path).index
-    cols = pd.MultiIndex.from_tuples(
-        [("scorer", kp, xy) for kp in model.cfg.data.keypoint_names for xy in ("x", "y")],
-        names=["scorer", "bodyparts", "coords"],
-    )
-    temp_csv = tmp / tag
-    pd.DataFrame(np.nan, index=index, columns=cols).to_csv(temp_csv)
-    result = model.predict_on_label_csv(
-        csv_file=temp_csv, data_dir=data_dir, compute_metrics=False, add_train_val_test_set=False,
-    )
-    return result.predictions
-
-
-def ensemble(
-    orig: pd.DataFrame, preds: list[pd.DataFrame], keypoints: list[tuple[str, str]], threshold: float,
-) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
-    """Return (new labels, {target_kp: n_surviving_members per row}).
-
-    A prediction survives if its likelihood is >= threshold. The new (x, y) is the mean
-    over survivors, NaN if none survive. Only the target columns in `keypoints` change.
-    """
-    new = orig.copy()
-    scorer = orig.columns.get_level_values(0)[0]
-    n_surv = {}
-    for pred_kp, kp in keypoints:
-        xs, ys, oks = [], [], []
-        for p in preds:
-            p = p.loc[orig.index]
-            scorer_p = p.columns.get_level_values(0)[0]
-            ok = (p[(scorer_p, pred_kp, "likelihood")] >= threshold).to_numpy()
-            xs.append(np.where(ok, p[(scorer_p, pred_kp, "x")].to_numpy(), np.nan))
-            ys.append(np.where(ok, p[(scorer_p, pred_kp, "y")].to_numpy(), np.nan))
-            oks.append(ok)
-        n = np.sum(oks, axis=0)
-        with np.errstate(all="ignore"):  # all-NaN slices -> NaN (the blank case)
-            new[(scorer, kp, "x")] = np.nanmean(xs, axis=0)
-            new[(scorer, kp, "y")] = np.nanmean(ys, axis=0)
-        n_surv[kp] = n
-    return new, n_surv
 
 
 def verify_untouched(orig: pd.DataFrame, new: pd.DataFrame, keypoints: list[tuple[str, str]]) -> None:

@@ -245,6 +245,7 @@ mighty-mouse/
     add_keypoints.py            add empty keypoint columns to a raw dataset (see skills/add-keypoints-to-raw-dataset)
     transfer_pseudo_labels.py   write model predictions into one raw dataset's label CSVs (see skills/transfer-pseudo-labels)
     ensemble_pseudo_labels.py   overwrite a raw dataset's labels with a confidence-thresholded mean of several models (see skills/transfer-pseudo-labels)
+    active_labeling.py          label new keypoints by iterating hand-labeling and ensemble-disagreement frame selection (see skills/active-pseudo-labeling)
     preprocessing/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
       extract_clips.py          cut short high-motion clips from raw videos for review
@@ -262,6 +263,9 @@ mighty-mouse/
     train.py                    sweep combo/naming/command logic shared by both
                                  train_sweep*.py scripts; also a standalone CLI
                                  (`python -m mighty_mouse.train`) for evaluation only
+    labeling/
+      ensemble.py               run an ensemble of LP models on a label CSV's images; confidence-thresholded mean
+      active_labeling.py        ensemble-disagreement frame selection, stats, merge-back (CLI: scripts/active_labeling.py)
     plots/
       plot_keypoints.py         keypoint overlay visualization
 
