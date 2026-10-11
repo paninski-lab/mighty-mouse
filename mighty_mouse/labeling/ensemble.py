@@ -46,15 +46,19 @@ def ensemble(
     preds: list[pd.DataFrame],
     keypoints: list[tuple[str, str]],
     threshold: float,
+    agg: str = "mean",
 ) -> tuple[pd.DataFrame, dict[str, np.ndarray]]:
     """Return (new labels, {target_kp: n_surviving_members per row}).
 
     A prediction survives if its likelihood is >= threshold. The new (x, y) is the mean
-    over survivors, NaN if none survive. Only the target columns in `keypoints`
-    (`(pred_name, target_name)` pairs) change.
+    over survivors (the median if `agg="median"`), NaN if none survive. Only the target
+    columns in `keypoints` (`(pred_name, target_name)` pairs) change.
     """
     new = orig.copy()
     scorer = orig.columns.get_level_values(0)[0]
+    if agg not in ("mean", "median"):
+        raise ValueError(f"agg must be 'mean' or 'median', got {agg!r}")
+    reduce = np.nanmean if agg == "mean" else np.nanmedian
     n_surv = {}
     for pred_kp, kp in keypoints:
         xs, ys, oks = [], [], []
@@ -67,7 +71,7 @@ def ensemble(
             oks.append(ok)
         n = np.sum(oks, axis=0)
         with np.errstate(all="ignore"):  # all-NaN slices -> NaN (the blank case)
-            new[(scorer, kp, "x")] = np.nanmean(xs, axis=0)
-            new[(scorer, kp, "y")] = np.nanmean(ys, axis=0)
+            new[(scorer, kp, "x")] = reduce(xs, axis=0)
+            new[(scorer, kp, "y")] = reduce(ys, axis=0)
         n_surv[kp] = n
     return new, n_surv

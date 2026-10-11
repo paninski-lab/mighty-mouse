@@ -112,6 +112,13 @@ sessions), and train + test CSVs are pooled (the split is ignored until `finaliz
    `select --m all` adds every remaining pool frame (prefilled); after they finish,
    `finalize <dataset> --dry_run`, then for real. It refuses unless tolabel covers every
    original row and no non-target column differs, and it keeps the originals' row order.
+   - The prefill is the mean over confident members by default. Ask whether the final fill
+     should use the median instead (`select --m all --prefill_agg median`), which is more
+     robust to one bad member of three.
+   - If the user will do the last review directly in the final CSVs, `select --m all`
+     followed straight by `finalize` is fine: every pool row then counts as reviewed. Say
+     plainly that the unreviewed rows hold ensemble values (the >10 px tail is least
+     reliable) and leave the frames with no confident member blank.
 8. Map the new keypoints in the dataset config / `POST_PROCESS` (`add-keypoints-to-raw-dataset`
    steps 3–5). Version bump only when asked (`bump-dataset-version`).
 

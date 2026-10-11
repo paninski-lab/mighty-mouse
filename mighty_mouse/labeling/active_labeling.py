@@ -135,10 +135,15 @@ def order_by_session(chosen: pd.Index, originals_index: pd.Index) -> pd.Index:
 
 
 def prefill_rows(
-    rows: pd.DataFrame, preds: list[pd.DataFrame], keypoints: list[str], threshold: float = 0.9,
+    rows: pd.DataFrame,
+    preds: list[pd.DataFrame],
+    keypoints: list[str],
+    threshold: float = 0.9,
+    agg: str = "mean",
 ) -> pd.DataFrame:
-    """Fill `keypoints` with the mean over members with likelihood >= threshold (empty if none)."""
-    new, _ = ensemble(rows, preds, [(kp, kp) for kp in keypoints], threshold)
+    """Fill `keypoints` with the mean (or median, `agg="median"`) over members with
+    likelihood >= threshold (empty if none)."""
+    new, _ = ensemble(rows, preds, [(kp, kp) for kp in keypoints], threshold, agg)
     return new
 
 

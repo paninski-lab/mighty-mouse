@@ -280,7 +280,9 @@ def cmd_select(args) -> None:
     scores = frame_scores(pool)
     chosen = order_by_session(select_frames(scores, m), originals.index)
     pool_sessions = len({session_name(i) for i in pool.index})
-    rows = prefill_rows(originals.loc[chosen], preds, state["keypoints"], args.prefill_threshold)
+    rows = prefill_rows(
+        originals.loc[chosen], preds, state["keypoints"], args.prefill_threshold, args.prefill_agg
+    )
     new_manifest = make_manifest(chosen, source, r + 1, True)
 
     sc = scores.loc[chosen]
@@ -372,6 +374,7 @@ def main() -> None:
     p = add("select", cmd_select)
     p.add_argument("--m", required=True, help="number of frames to add, or `all`")
     p.add_argument("--prefill_threshold", type=float, default=0.9)
+    p.add_argument("--prefill_agg", choices=["mean", "median"], default="mean")
     p.add_argument("--dry_run", action="store_true")
 
     p = add("finalize", cmd_finalize)
