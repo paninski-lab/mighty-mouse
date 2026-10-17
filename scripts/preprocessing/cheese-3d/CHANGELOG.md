@@ -15,6 +15,14 @@ as-is.
 
 ## Changelog
 
+### 2026-10-17 (MW) (version 3)
+- Large manual correction pass (MW) over the version 2 ensemble pseudo-labels in
+  `CollectedData.csv` and `CollectedData_test.csv`. No rows or keypoints were added or removed.
+  Net label changes vs. version 2 (train / test): cells with coordinates moved by more than
+  0.01 px 23,279 / 6,254 (1,691 of 1,692 / 486 of 486 frames touched), cells gaining a label
+  578 / 54, cells losing a label 2,090 / 1,090. Most-edited keypoints: the eye keypoints and
+  `pupil_center_left`/`pupil_center_right` in train; the pupils and ear tips/bottoms in test.
+
 ### 2026-10-02 (MW) (version 2)
 - Replaced all non-pupil pseudo-labels (27 keypoints) with a confidence-thresholded
   ensemble mean from three `cheese-2d` models (`results/cheese-2d/`, `vits_dinov2`,

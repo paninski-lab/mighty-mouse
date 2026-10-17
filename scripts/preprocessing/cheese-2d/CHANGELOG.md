@@ -8,6 +8,19 @@ current keypoint mapping.
 
 ## Changelog
 
+### 2026-10-17 (MW) (version 2)
+- Manual label review and correction pass (MW) over `CollectedData.csv` and
+  `CollectedData_test.csv`, checking per-view consistency (eye/ear/pad/lip sides match the camera
+  view, no left/right swaps, train vs. test labeling conventions). No rows added or removed.
+  Relative to version 1, `CollectedData.csv` has 66 frames with edited labels (214 moved
+  coordinates, 96 newly labeled, 68 labels removed) and `CollectedData_test.csv` has labels
+  changed in 8 frames (32 moved coordinates, 28 newly labeled, 250 labels removed).
+- Renamed 126 digit-only test frames (e.g. `000.png`) in the `20250518_B1_ephys-record_awake_002`
+  sessions to `img000.png` etc. (images on disk and index entries in `CollectedData_test.csv`).
+  The labeling app only accepts `labeled-data/<dir>/<letters><digits>.png|jpg` index paths, so
+  `CollectedData_test.csv` was previously hidden from its label-file dropdown. The version 0/1
+  test snapshots still use the old digit-only names.
+
 ### 2026-09-26 (MW) (version 1)
 - Filled `pad(top)(left)`, `pad(side)(left)`, `pad(top)(right)`, `pad(side)(right)` (whisker
   pad keypoints) using a single-view heatmap model trained on `cheese-3d`
