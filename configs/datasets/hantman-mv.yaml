@@ -15,10 +15,19 @@ exclude:
     - pellet
 
 keypoints:
-  d1_tip: d1_tip_{side}
-  d2_tip: d2_tip_{side}
-  d3_tip: d3_tip_{side}
-  d4_tip: d4_tip_{side}
+  # Paw keypoints use plain _right/_left targets (not {side}): both paws are now labeled
+  # in separate raw columns, and a {side} template would also emit an all-NaN _left column
+  # that collides with the real *_left one. All sessions are right-handed, so this is
+  # equivalent for the right paw.
+  d1_tip: d1_tip_right
+  d2_tip: d2_tip_right
+  d3_tip: d3_tip_right
+  d4_tip: d4_tip_right
+  d1_tip_left: d1_tip_left
+  d2_tip_left: d2_tip_left
+  d3_tip_left: d3_tip_left
+  d4_tip_left: d4_tip_left
+  wrist_left: wrist_left
   eye_back: eye_back_{side}
   eye_top: eye_top_{side}
   eye_front: eye_front_{side}
@@ -26,7 +35,7 @@ keypoints:
   nose_tip: nose_tip
   nose_bottom: nose_bottom
   nose_top: nose_top
-  wrist_new: wrist_{side}
+  wrist_new: wrist_right
   ear_top: ear_top_{side}
   ear_tip: ear_tip_{side}
   ear_bottom: ear_bottom_{side}

@@ -70,21 +70,38 @@ def suppress_occluded(df: pd.DataFrame, keypoints: Iterable[str]) -> pd.DataFram
 # confidence everywhere) for a paw that's actually there. Force vis=0 (excluded from the
 # loss entirely, no opinion) for every _left column instead.
 #
-# Exception: the ear_* keypoints are deliberately mapped with all-empty source columns
-# (see scripts/preprocessing/hantman-mv/README.md) specifically to get the default vis=1
-# suppression signal on *both* sides, matching cazettes-side/facemap -- so they're excluded
-# from this override rather than forced to vis=0.
+# Exceptions (left at the default vis=1, i.e. empty = occluded):
+#  - ear_*_left: deliberately mapped with all-empty source columns (see
+#    scripts/preprocessing/hantman-mv/README.md) to get the vis=1 suppression signal on
+#    *both* sides, matching cazettes-side/facemap.
+#  - d{1-4}_tip_left on *front* rows: the left fingertips were later pseudo-labeled and
+#    manually adjusted on every front-view frame, so empty cells there are real occlusions.
+#    On *side* rows they were never labeled or reviewed, so they are forced to vis=0.
+#  - wrist_left (both views): labeled/being labeled manually on both views.
 _HANTMAN_MV_LEFT_SUPPRESS_EXEMPT = frozenset([
-    "ear_top_left", "ear_tip_left", "ear_bottom_left", "ear_base_left",
+    "ear_top_left", "ear_tip_left", "ear_bottom_left", "ear_base_left", "wrist_left",
 ])
+_HANTMAN_MV_LEFT_FINGERTIPS = ("d1_tip_left", "d2_tip_left", "d3_tip_left", "d4_tip_left")
+_HANTMAN_MV_SIDE_SUFFIX = "_side"
 
 
 def _post_process_hantman_mv(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     kps = [
         kp for kp in df.columns.get_level_values(1).unique()
-        if kp.endswith("_left") and kp not in _HANTMAN_MV_LEFT_SUPPRESS_EXEMPT
+        if kp.endswith("_left")
+        and kp not in _HANTMAN_MV_LEFT_SUPPRESS_EXEMPT
+        and kp not in _HANTMAN_MV_LEFT_FINGERTIPS
     ]
-    return suppress_occluded(df, kps)
+    suppress_occluded(df, kps)
+
+    side_rows = np.array([session_name(p).endswith(_HANTMAN_MV_SIDE_SUFFIX) for p in df.index])
+    for kp in _HANTMAN_MV_LEFT_FINGERTIPS:
+        if kp not in df.columns.get_level_values(1):
+            continue
+        vis_col = (SCORER, kp, "visible")
+        vis = df[vis_col].to_numpy()
+        df[vis_col] = np.where(side_rows & (vis == 1.0), 0.0, vis)
+    return df
 
 
 # kaufman: every session is lateralized to "right" (configs/datasets/kaufman.yaml) -- same
@@ -201,6 +218,20 @@ def check_keypoint_targets(config: dict, canonical_kps: list[str]) -> list[str]:
     return errors
 
 
+def check_duplicate_targets(config: dict) -> list[str]:
+    """No two source keypoints may resolve to the same canonical name (the later one would
+    silently overwrite the earlier in map_keypoints)."""
+    seen: dict[str, str] = {}
+    errors: list[str] = []
+    for src, tgt in config["keypoints"].items():
+        resolved = [tgt.format(side=side) for side in SIDES] if "{side}" in tgt else [tgt]
+        for name in resolved:
+            if name in seen:
+                errors.append(f"keypoints: '{src}' and '{seen[name]}' both map to '{name}'")
+            seen[name] = src
+    return errors
+
+
 def check_sessions(config: dict, sessions: set[str]) -> list[str]:
     """``sessions`` entries must exist in the CSVs, and every CSV session must appear in
     either ``sessions`` or ``exclude.sessions``."""
@@ -260,6 +291,7 @@ def validate_dataset_config(
         check_exclusions(config, kps, sessions)
         + check_keypoint_sources(config, kps)
         + check_keypoint_targets(config, canonical_kps)
+        + check_duplicate_targets(config)
         + check_sessions(config, sessions)
         + check_session_sides(config)
     )

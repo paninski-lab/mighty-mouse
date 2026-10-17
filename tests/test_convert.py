@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from mighty_mouse.convert import (
+    check_duplicate_targets,
     check_exclusions,
     check_keypoint_sources,
     check_keypoint_targets,
@@ -104,6 +105,26 @@ class TestPostProcess:
         assert _vis(result, "paw_left") == [0.0, 2.0]
         assert _vis(result, "paw_right") == [1.0, 2.0]
         assert _vis(result, "ear_tip_left") == [1.0, 1.0]
+
+    def test_post_process_hantman_mv_left_paw_by_view(self, make_processed_df: Callable):
+        df = make_processed_df({
+            "d1_tip_left": [1.0, 2.0, 1.0, 2.0],
+            "wrist_left": [1.0, 2.0, 1.0, 2.0],
+            "eye_top_left": [1.0, 1.0, 1.0, 1.0],
+        })
+        df.index = pd.Index([
+            f"labeled-data/ds/{sess}/img{i}.png"
+            for i, sess in enumerate(["S1_front", "S1_front", "S1_side", "S1_side"])
+        ])
+
+        result = post_process(df, {}, "hantman-mv")
+
+        # fingertips: front keeps occlusion signal, side is dropped from the loss
+        assert _vis(result, "d1_tip_left") == [1.0, 2.0, 0.0, 2.0]
+        # wrist_left: untouched on both views
+        assert _vis(result, "wrist_left") == [1.0, 2.0, 1.0, 2.0]
+        # other _left keypoints still suppressed everywhere
+        assert _vis(result, "eye_top_left") == [0.0, 0.0, 0.0, 0.0]
 
     def test_post_process_kaufman(self, make_processed_df: Callable):
         df = make_processed_df({
@@ -226,6 +247,15 @@ class TestCheckKeypointTargets:
         errors = check_keypoint_targets(config, canonical_kps)
 
         assert errors == ["keypoints: 'snout' → 'snout' not in keypoints.yaml"]
+
+    def test_check_duplicate_targets(self):
+        config = {"keypoints": {"a": "paw_{side}", "b": "paw_left", "c": "nose"}}
+        errors = check_duplicate_targets(config)
+        assert len(errors) == 1 and "paw_left" in errors[0]
+
+    def test_check_duplicate_targets_none(self):
+        config = {"keypoints": {"a": "paw_right", "b": "paw_left", "c": "eye_{side}"}}
+        assert check_duplicate_targets(config) == []
 
     def test_check_keypoint_targets_side_checks_both(self):
         config = {"keypoints": {"paw": "paw_{side}"}}

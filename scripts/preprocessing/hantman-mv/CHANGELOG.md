@@ -4,6 +4,31 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
 
 ## Changelog
 
+### 2026-10-17 (MW) (version 2)
+- Added `d1_tip_left`, `d2_tip_left`, `d3_tip_left`, `d4_tip_left` and `wrist_left` to
+  `project.yaml` + both `CollectedData*.csv` files. Fingertips come from SG's
+  pseudo-labeling plus manual adjustment (front view only; side view not labeled or
+  reviewed), and were further edited manually afterward. `wrist_left` was labeled manually
+  on both views.
+- Labeled counts (front view, of 96 train / 15 test frames): `d1`–`d4_tip_left` 51–59 train,
+  6–9 test; `wrist_left` 75 train, 9 test. Side view: no fingertips, `wrist_left` in 51
+  train and 2 test frames.
+- No existing column changed (0 cells differ from version 1), including `nose_top`; SG's
+  separate `nose_tip`/`hand_*`/`wrist` edits in `tmp/` were not taken.
+- Pipeline changes to support the new left-paw labels:
+  - [`configs/datasets/hantman-mv.yaml`](../../../configs/datasets/hantman-mv.yaml): mapped
+    `d{1-4}_tip_left` and `wrist_left` explicitly, and switched `d{1-4}_tip` / `wrist_new`
+    from `*_{side}` to plain `*_right` targets. A `{side}` template also emits an all-NaN
+    `*_left` column, which would collide with the real one (all sessions are `right`, so
+    the right paw is unaffected).
+  - `_post_process_hantman_mv` (`mighty_mouse/convert.py`) is now view-aware:
+    `d{1-4}_tip_left` get `visible=0` on `*_side` frames (never labeled or reviewed) and keep
+    the default `visible=1` on `*_front` frames (every frame reviewed, so empty = occluded);
+    `wrist_left` is exempt on both views; all other `_left` columns (e.g. `eye_*_left`)
+    are still forced to `visible=0` except `ear_*_left`.
+  - New `check_duplicate_targets` validation: two source keypoints may not resolve to the
+    same canonical name.
+
 ### 2026-09-29 (MW) (version 1)
 - Added `nose_top` as a new keypoint to `project.yaml` + both `CollectedData*.csv` files
   (via `scripts/add_keypoints.py`), and manually labeled it in the LP app in every frame

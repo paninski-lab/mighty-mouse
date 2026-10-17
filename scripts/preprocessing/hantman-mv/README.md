@@ -70,24 +70,30 @@ python scripts/preprocessing/hantman-mv/convert_hantman_mv.py --seed 1
 
 ## Stage 2 (drafted, not run — see status note above)
 
-`configs/datasets/hantman-mv.yaml` keeps `d1_tip`/`d2_tip`/`d3_tip`/`d4_tip` (lateralized,
+`configs/datasets/hantman-mv.yaml` keeps `d1_tip`/`d2_tip`/`d3_tip`/`d4_tip` (mapped to `*_right`,
 newly added to `configs/keypoints.yaml`/`configs/model.yaml`), `eye_back`/`eye_top`/
 `eye_front`/`eye_bottom` (lateralized, already canonical), `nose_tip`/`nose_bottom`
-(midline, already canonical), the computed `wrist_new` (lateralized to
-`wrist_{side}`, already canonical — see the 2026-09-15 entry in `CHANGELOG.md`), and
-`nose_top` (midline, already canonical; added 2026-09-29 for manual labeling). All 54 sessions are
+(midline, already canonical), the computed `wrist_new` (mapped to
+`wrist_right`, already canonical — see the 2026-09-15 entry in `CHANGELOG.md`), and
+`nose_top` (midline, already canonical; added 2026-09-29 for manual labeling), plus the
+front-view `d{1-4}_tip_left`/`wrist_left` columns described below. All 54 sessions are
 declared `right` (single hand, per the raw source). Everything else — the digit
 `_middle`/`_base` joints, `hand_middle`/`hand_lateral`/`hand_medial`, source `wrist`,
 `pellet` — is excluded.
 
-Only one side was ever filmed, so the default per-split output would mark every `_left`
-counterpart of a lateralized keypoint `visible=1` ("in dataset, unlabeled") rather than
-`visible=0` ("not part of this dataset") — training on that would teach the model to
-predict a suppressed heatmap for a side that was simply never assessed. A
-`POST_PROCESS["hantman-mv"]` entry in `mighty_mouse/convert.py` forces every `_left`
-column to `visible=0` after the standard split processing, **except** the four
-`ear_*_left` columns (see the 2026-09-17 entry in `CHANGELOG.md`), which are
-deliberately left at `visible=1` instead.
+The right paw was labeled first, and the `_left` counterparts were never assessed, so the
+default per-split output would mark them `visible=1` ("in dataset, unlabeled") rather than
+`visible=0` ("not part of this dataset") -- training on that would teach the model to
+predict a suppressed heatmap for a paw that is actually there. A
+`POST_PROCESS["hantman-mv"]` entry in `mighty_mouse/convert.py` therefore forces every
+`_left` column to `visible=0` after the standard split processing, with these exceptions:
+
+- `ear_*_left` stay at `visible=1` (see the 2026-09-17 entry in `CHANGELOG.md`).
+- `d{1-4}_tip_left` were pseudo-labeled and manually adjusted on the **front** view only
+  (raw columns `d{1-4}_tip_left`, mapped to themselves), so they keep `visible=1` on
+  front frames (every frame was reviewed; empty = occluded) and are `visible=0` on side
+  frames.
+- `wrist_left` (also a raw column) is left at the default on both views.
 
 To actually run stage 2:
 ```bash
