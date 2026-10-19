@@ -71,6 +71,17 @@ python scripts/bump_version.py <dataset> --initials <XX> --message-file <path> [
   list body for the changelog entry (no `###` header — the script writes
   that). Write it the same way as existing entries in that dataset's
   `CHANGELOG.md`.
+
+  **What goes in an entry: changes to the label data only.** Include what changed in
+  `CollectedData.csv` / `CollectedData_test.csv` — keypoints added, renamed, reordered or
+  dropped (columns), pseudo-labeling (model, confidence threshold, which keypoints, whether
+  existing labels were replaced), manual relabeling or blanking (which keypoints and rows),
+  and any rows/frames added or removed. Leave out everything else, even if it was part of the
+  same piece of work: `configs/datasets/<name>.yaml` / `convert.py` / `POST_PROCESS` changes,
+  `project.yaml` extras such as the skeleton, tests, README edits, cache or results paths, and
+  sanity-check findings or known issues that weren't fixed in this version. Those belong in
+  the README, the config comments or the conversation, not the dataset's version history.
+  If hand edits weren't itemized, say so briefly rather than guessing at them.
 - `--dry-run` prints what would happen (next version number, files touched,
   the changelog entry text) without writing anything.
 

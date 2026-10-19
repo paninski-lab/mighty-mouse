@@ -1,14 +1,10 @@
 exclude:
   keypoints:
-    - nostril_l
-    - nostril_r
     - jaw
     - tongue_base_l
     - tongue_base_r
     - paw_forward_l
     - paw_forward_r
-    - paw_wrist_l
-    - paw_wrist_r
     - pinky_l
     - pinky_r
     - ring_finger_l
@@ -20,14 +16,24 @@ exclude:
   sessions:
 
 keypoints:
+  eye_front_l: eye_front_{side}
+  eye_back_l: eye_back_{side}
   eye_top_l: eye_top_{side}
   eye_bottom_l: eye_bottom_{side}
   whisker_pad_l_top: pad_top_{side}
   whisker_pad_l_side: pad_side_{side}
-  ear_tip_l: ear_top_{side}
-  ear_base_l: ear_bottom_{side}
+  ear_base_l: ear_base_{side}
+  ear_bottom_l: ear_bottom_{side}
+  ear_tip_l: ear_tip_{side}
+  ear_top_l: ear_top_{side}
+  nose_top: nose_top
   nose_tip: nose_tip
+  nose_bottom: nose_bottom
   tongue_tip: tongue_tip
+  # both paws are labeled in the same frame, so plain _left/_right targets (a {side} template
+  # would also emit an all-NaN column that collides with the other wrist)
+  paw_wrist_l: wrist_left
+  paw_wrist_r: wrist_right
 
 sessions:
   1044385384_524761_20200819.behavior: left

@@ -132,6 +132,7 @@ it from file timestamps.
 
 6. **Record it.** Don't write a separate changelog entry — the next version bump
    (`bump-dataset-version` skill) inserts one. Draft the bullets for that bump's
-   message instead, matching the dataset's existing entries: which keypoints were
-   added and labeled, the config mapping, and any `POST_PROCESS` change with its
-   reasoning. **Only bump when the user asks** — they verify the labels first.
+   message instead: which keypoints were added and labeled. Changelog entries cover
+   label-data changes only, so leave out the config mapping and any `POST_PROCESS`
+   change (see `bump-dataset-version`); put their reasoning in the code comments or
+   the dataset's README. **Only bump when the user asks** — they verify the labels first.

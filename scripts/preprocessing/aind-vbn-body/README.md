@@ -26,11 +26,14 @@ using the same script (`--view face`).
   shifted/scaled with the crop and set to NaN if they fall outside it. Video clips use each
   session's median box (median H, C over its labeled frames) instead of per-frame boxes,
   also resized to 256x256.
-- **Keypoints**: `*_lh`, `*_rh` (hindpaws) and `tail_*` are dropped entirely, leaving 25 with
-  their raw source names (see `project.yaml`). The config maps 8 of them to canonical names
-  and excludes the other 17. Every source name is left-side, so all sessions are `left`.
-  The scorer varies by annotator, so it's normalized to `aind-vbn` when concatenating.
-  Session `1051155866_…behavior` has a stale default `config.yaml`; CSV headers are used instead.
+- **Keypoints**: `*_lh`, `*_rh` (hindpaws) and `tail_*` are dropped entirely. The remaining
+  columns keep raw `_l`/`_r` names (see `project.yaml`; order is the labeling order). The config
+  maps the face/ear/nose/tongue/wrist columns to canonical names and excludes the rest. Face
+  columns are left-side, so all sessions are `left`; `paw_wrist_l`/`paw_wrist_r` map to plain
+  `wrist_left`/`wrist_right`. Eye, ear, nose, pad and wrist columns were later replaced by
+  pseudo-labels (see `CHANGELOG.md`). The scorer varies by annotator, so it's normalized to
+  `aind-vbn` when concatenating. Session `1051155866_…behavior` has a stale default
+  `config.yaml`; CSV headers are used instead.
 - **Split**: subject-level by mouse id via `mighty_mouse.subject_split` (target 12.5% midpoint,
   seed 0). Test mice are always derived from the body frame counts, so the face dataset
   holds out the same mice.
