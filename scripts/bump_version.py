@@ -16,6 +16,8 @@ from pathlib import Path
 
 from mighty_mouse.paths import load_paths, repo_root
 
+import corpus_summary
+
 CSV_NAMES = ["CollectedData.csv", "CollectedData_test.csv"]
 
 
@@ -149,6 +151,11 @@ def main():
     insert_changelog_entry(changelog_file, args.dataset, entry)
 
     print(f"Bumped {args.dataset} to version {next_version}.")
+
+    try:
+        corpus_summary.main()
+    except Exception as e:  # the bump itself already succeeded; don't make it look failed
+        print(f"WARNING: bump done, but corpus summary failed: {e}\nRe-run scripts/corpus_summary.py.")
 
 
 if __name__ == "__main__":

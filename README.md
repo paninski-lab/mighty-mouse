@@ -245,6 +245,7 @@ mighty-mouse/
     train_sweep.py              LP training sweep + evaluation, local/sequential (see docs/train_sweep.md)
     train_sweep_lightning.py    same sweep, Lightning AI/parallel (see docs/train_sweep.md, mighty_mouse/train.py)
     bump_version.py             snapshot a raw dataset's label CSVs as a new version (see skills/bump-dataset-version)
+    corpus_summary.py           per-dataset frame/keypoint summary -> assets/corpus.{csv,md}; run automatically by bump_version.py
     add_keypoints.py            add empty keypoint columns to a raw dataset (see skills/add-keypoints-to-raw-dataset)
     transfer_pseudo_labels.py   write model predictions into one raw dataset's label CSVs (see skills/transfer-pseudo-labels)
     ensemble_pseudo_labels.py   overwrite a raw dataset's labels with a confidence-thresholded mean of several models (see skills/transfer-pseudo-labels)
