@@ -22,16 +22,16 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from mighty_mouse.labels import add_project_keypoints, append_keypoint_columns
+from mighty_mouse.labels import add_project_keypoints, append_keypoint_columns, fix_empty_first_row
 from mighty_mouse.paths import load_paths
 
 CSV_NAMES = ("CollectedData.csv", "CollectedData_test.csv")
 
 
 def _read_csv_text(text: str) -> pd.DataFrame:
-    return pd.read_csv(
+    return fix_empty_first_row(pd.read_csv(
         StringIO(text), header=[0, 1, 2], index_col=0, float_precision="round_trip",
-    )
+    ))
 
 
 def _check_csv(old_text: str, new_text: str, keypoints: list[str]) -> None:

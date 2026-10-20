@@ -1,8 +1,7 @@
 # aind-vbn-body dataset conversion
 
-> **Status: stage 1 only.** `_raw/aind-vbn-body/` is a usable standalone LP project, not yet in
-> the combined corpus. See [`skills/preprocess-new-dataset/SKILL.md`](../../../skills/preprocess-new-dataset/SKILL.md) for what
-> stage 2 would involve; don't start it unless asked. A draft keypoint mapping is in
+> **Status:** `aind-vbn-body` is in `ALL_DATASETS` (`mighty_mouse/datasets.py`); `convert_dataset.py`
+> and `build_dataset.py` haven't been run for it yet. The keypoint mapping is in
 > [`configs/datasets/aind-vbn-body.yaml`](../../../configs/datasets/aind-vbn-body.yaml).
 
 ## Source format

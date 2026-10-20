@@ -156,6 +156,8 @@ as labels are added, so check the CSVs directly rather than recording them here.
 | cazettes-side | left-view; bilateral kps lateralized via `{side}` |
 | kondo         | right-view face + both wrists |
 | kaufman       | right-forepaw digit tips only; subject-level train/test split |
+| aind-vbn-body | left-view body camera (256x256 crop); eyes, pad, ears, nose, tongue tip, both wrists; mostly pseudo-labeled |
+| aind-vbn-face | front-view face camera (256x256 crop around the nose); eyes, pad, nose, tongue tip, wrists for both sides; mostly pseudo-labeled; nose excluded in the config |
 
 ---
 

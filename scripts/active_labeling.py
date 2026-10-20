@@ -47,7 +47,7 @@ from mighty_mouse.labeling.active_labeling import (
     select_frames,
 )
 from mighty_mouse.labeling.ensemble import predict
-from mighty_mouse.labels import session_name
+from mighty_mouse.labels import read_labels_csv, session_name
 from mighty_mouse.paths import load_paths
 
 TRAIN_CSV, TEST_CSV = "CollectedData.csv", "CollectedData_test.csv"
@@ -101,7 +101,7 @@ class Ctx:
 
 def read_exact(path: Path) -> pd.DataFrame:
     """Read a label CSV without the default float parser's last-digit loss."""
-    return pd.read_csv(path, header=[0, 1, 2], index_col=0, float_precision="round_trip")
+    return read_labels_csv(path, float_precision="round_trip")
 
 
 def current_round(manifest: pd.DataFrame) -> int:
@@ -118,7 +118,7 @@ def load_preds(ctx: Ctx, r: int, model_dirs: list[str]) -> list[pd.DataFrame]:
         p = cache_path(ctx, r, i, d)
         if not p.exists():
             sys.exit(f"Missing cached predictions {p} -- run `score` for this round")
-        preds.append(pd.read_csv(p, header=[0, 1, 2], index_col=0))
+        preds.append(read_labels_csv(p))
     return preds
 
 

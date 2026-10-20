@@ -2,12 +2,14 @@
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from mighty_mouse.labels import (
     add_project_keypoints,
     append_keypoint_columns,
+    fix_empty_first_row,
     frame_name,
     read_labels_csv,
     session_name,
@@ -33,6 +35,29 @@ class TestReadLabelsCsv:
         result = read_labels_csv(str(path))
 
         assert list(result.index) == list(raw_df.index)
+
+    def test_read_labels_csv_keeps_empty_first_row(self, tmp_path: Path, raw_df: pd.DataFrame):
+        df = raw_df.copy()
+        df.iloc[0] = np.nan
+        path = tmp_path / "CollectedData.csv"
+        df.to_csv(path)
+
+        result = read_labels_csv(path)
+
+        pd.testing.assert_frame_equal(result, df, check_names=False)
+        assert result.index.name is None
+
+    def test_read_labels_csv_empty_first_row_survives_roundtrip(
+        self, tmp_path: Path, raw_df: pd.DataFrame
+    ):
+        df = raw_df.copy()
+        df.iloc[0] = np.nan
+        first, second = tmp_path / "a.csv", tmp_path / "b.csv"
+        df.to_csv(first)
+
+        read_labels_csv(first).to_csv(second)
+
+        assert second.read_text() == first.read_text()
 
     def test_read_labels_csv_missing_file(self, tmp_path: Path):
         with pytest.raises(FileNotFoundError):
@@ -156,3 +181,22 @@ class TestAddProjectKeypoints:
     def test_add_project_keypoints_existing_keypoint(self):
         with pytest.raises(ValueError, match="already present"):
             add_project_keypoints({"keypoint_names": ["nose"]}, ["nose"])
+
+
+class TestFixEmptyFirstRow:
+    """Test the function fix_empty_first_row."""
+
+    def test_fix_empty_first_row_restores_dropped_row(self, raw_df: pd.DataFrame):
+        dropped = raw_df.iloc[1:].copy()
+        dropped.index.name = raw_df.index[0]
+
+        result = fix_empty_first_row(dropped)
+
+        assert list(result.index) == list(raw_df.index[:1]) + list(raw_df.index[1:])
+        assert result.iloc[0].isna().all()
+        assert result.index.name is None
+
+    def test_fix_empty_first_row_no_index_name_unchanged(self, raw_df: pd.DataFrame):
+        result = fix_empty_first_row(raw_df)
+
+        pd.testing.assert_frame_equal(result, raw_df)

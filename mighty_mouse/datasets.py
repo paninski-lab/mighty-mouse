@@ -10,4 +10,15 @@ stage 2) since not every configs/datasets/<name>.yaml is necessarily ready to
 be part of default runs yet.
 """
 
-ALL_DATASETS = ["facemap", "ibl", "cheese-2d", "cazettes-side", "kondo", "kaufman"]
+ALL_DATASETS = [
+    "aind-vbn-body",
+    "aind-vbn-face",
+    "cazettes-side",
+    "cheese-2d",
+    "cheese-3d",
+    "facemap",
+    "hantman-mv",
+    "ibl",
+    "kaufman",
+    "kondo",
+]

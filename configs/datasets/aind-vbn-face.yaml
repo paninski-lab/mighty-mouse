@@ -1,33 +1,30 @@
 exclude:
   keypoints:
-    - nostril_l
-    - nostril_r
-    - jaw
-    - tongue_base_l
-    - tongue_base_r
-    - paw_forward_l
-    - paw_forward_r
-    - paw_wrist_l
-    - paw_wrist_r
+    - nose_top
+    - nose_tip
   sessions:
 
+# Both sides of the face are visible in the same frame, so the eye/pad/wrist columns are
+# explicit _l/_r raw columns mapped one-to-one (a {side} template would put a row's labels
+# on one side only).
 keypoints:
+  eye_front_l: eye_front_left
+  eye_back_l: eye_back_left
   eye_top_l: eye_top_left
   eye_bottom_l: eye_bottom_left
   whisker_pad_l_top: pad_top_left
   whisker_pad_l_side: pad_side_left
-  ear_tip_l: ear_top_left
-  ear_base_l: ear_bottom_left
+  eye_front_r: eye_front_right
+  eye_back_r: eye_back_right
+  eye_top_r: eye_top_right
+  eye_bottom_r: eye_bottom_right
+  whisker_pad_r_top: pad_top_right
+  whisker_pad_r_side: pad_side_right
+  nose_top: nose_top
   nose_tip: nose_tip
   tongue_tip: tongue_tip
-  pinky_l: d1_tip_left
-  ring_finger_l: d2_tip_left
-  middle_finger_l: d3_tip_left
-  pointer_finger_l: d4_tip_left
-  pinky_r: d1_tip_right
-  ring_finger_r: d2_tip_right
-  middle_finger_r: d3_tip_right
-  pointer_finger_r: d4_tip_right
+  paw_wrist_l: wrist_left
+  paw_wrist_r: wrist_right
 
 sessions:
   1044385384_524761_20200819.face: left

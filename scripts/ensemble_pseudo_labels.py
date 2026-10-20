@@ -88,7 +88,7 @@ def main():
             for i, d in enumerate(args.model_dirs):
                 cache = args.out_dir / f"{Path(name).stem}_member{i}_{d.name}.csv"
                 if cache.exists():
-                    p = pd.read_csv(cache, header=[0, 1, 2], index_col=0)
+                    p = read_labels_csv(cache)
                 else:
                     models = models or {}
                     if i not in models:

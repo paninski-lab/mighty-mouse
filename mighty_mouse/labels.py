@@ -7,6 +7,7 @@ coords) and an index of image paths ending in ``.../<session>/<frame>.png``.
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 # scorer name written into every converted / combined CSV
@@ -16,16 +17,43 @@ SCORER = "All"
 COORDS = ("x", "y", "visible")
 
 
-def read_labels_csv(path: Path | str) -> pd.DataFrame:
+def fix_empty_first_row(df: pd.DataFrame) -> pd.DataFrame:
+    """Restore a first data row that `pd.read_csv` dropped because all of its values are empty.
+
+    With a multi-row header, pandas takes the first row after the header as the index-name row,
+    and cannot tell it from an all-NaN data row (https://github.com/pandas-dev/pandas/issues/21995).
+    The row's image path ends up in `df.index.name`, and `to_csv` writes it back as a blank
+    line, so a round trip silently loses the row. Same fix as Lightning Pose's
+    `lightning_pose.utils.io.fix_empty_first_row`: if the index has a name, prepend an all-NaN
+    row with that name as its index.
+
+    Args:
+        df: frame read with `header=[0, 1, 2], index_col=0`
+
+    Returns:
+        `df` with the dropped row restored and an unnamed index (unchanged if nothing was dropped)
+    """
+    if df.index.name is None:
+        return df
+    first = pd.DataFrame(
+        np.nan, index=pd.Index([df.index.name]), columns=df.columns, dtype="float64",
+    )
+    return pd.concat([first, df])
+
+
+def read_labels_csv(path: Path | str, **kwargs) -> pd.DataFrame:
     """Read an LP-format label or prediction CSV.
+
+    An all-empty first row is kept (see `fix_empty_first_row`).
 
     Args:
         path: path to the CSV file
+        **kwargs: passed to `pd.read_csv`, e.g. `float_precision="round_trip"`
 
     Returns:
         DataFrame with a (scorer, bodyparts, coords) column MultiIndex, indexed by image path
     """
-    return pd.read_csv(path, header=[0, 1, 2], index_col=0)
+    return fix_empty_first_row(pd.read_csv(path, header=[0, 1, 2], index_col=0, **kwargs))
 
 
 def session_name(img_path: str) -> str:
