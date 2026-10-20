@@ -47,13 +47,11 @@ def main():
     dst = args.dst or raw_dir / "cavelli"
 
     df = pd.read_csv(src / "CollectedData_cavelli.csv", header=[0, 1, 2], index_col=0)
-    xy = df.loc[:, df.columns.get_level_values(2).isin(["x", "y"])]
-    labeled = [kp for kp in dict.fromkeys(c[1] for c in xy.columns) if xy[(df.columns[0][0], kp, "x")].notna().any()]
     scorer_in = df.columns[0][0]
+    all_kps = list(dict.fromkeys(c[1] for c in df.columns))
+    labeled = [kp for kp in all_kps if df[(scorer_in, kp, "x")].notna().any()]
     cols = [(SCORER, kp, c) for kp in labeled for c in ("x", "y")]
-    out = pd.DataFrame(
-        {(SCORER, kp, c): xy[(scorer_in, kp, c)] for kp in labeled for c in ("x", "y")}
-    )
+    out = pd.DataFrame({(SCORER, kp, c): df[(scorer_in, kp, c)] for _, kp, c in cols})
     out.columns = pd.MultiIndex.from_tuples(cols, names=["scorer", "bodyparts", "coords"])
     out.index = ["labeled-data/" + i.removeprefix(SRC_PREFIX) for i in out.index]
 
@@ -63,16 +61,22 @@ def main():
     _, test_subjects = subject_split(counts, SEED, TEST_FRACTION)
     is_test = subjects.isin(test_subjects)
 
-    for name, part in (("CollectedData.csv", out[~is_test]), ("CollectedData_test.csv", out[is_test])):
-        (dst).mkdir(parents=True, exist_ok=True)
+    splits = {"CollectedData.csv": out[~is_test], "CollectedData_test.csv": out[is_test]}
+    # _raw/cavelli holds hand-edited labels (version 1+); never clobber them.
+    existing = [n for n in splits if (dst / n).exists()]
+    if existing:
+        raise SystemExit(f"refusing to overwrite {existing} in {dst}; pass --dst elsewhere")
+    dst.mkdir(parents=True, exist_ok=True)
+    for name, part in splits.items():
         part.to_csv(dst / name)
         print(f"{name}: {len(part)} rows")
-    for rel_out, rel_src in zip(out.index, df.index):
+    for rel_out, rel_src in zip(out.index, df.index, strict=True):
         (dst / rel_out).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src / rel_src, dst / rel_out)
     (dst / "videos").mkdir(exist_ok=True)
     with open(dst / "project.yaml", "w") as f:
-        yaml.safe_dump({"keypoint_names": labeled, "schema_version": 1, "view_names": []}, f, sort_keys=False)
+        project = {"keypoint_names": labeled, "schema_version": 1, "view_names": []}
+        yaml.safe_dump(project, f, sort_keys=False)
     print(f"keypoints: {labeled}\ntest subjects: {sorted(test_subjects)}")
 
 

@@ -2,9 +2,9 @@
 
 Builds `_raw/cavelli` from the DLC project at `_raw/_dlc/cavelli`.
 
-> **Status: stage 1 only.** `_raw/cavelli/` is a usable standalone LP project, not yet in
-> the combined corpus. See [`skills/preprocess-new-dataset/SKILL.md`](../../../skills/preprocess-new-dataset/SKILL.md) for what
-> stage 2 would involve; don't start it unless asked.
+> **Status:** `cavelli` is in `ALL_DATASETS` (`mighty_mouse/datasets.py`); `convert_dataset.py`
+> and `build_dataset.py` haven't been run for it yet. The keypoint mapping is in
+> [`configs/datasets/cavelli.yaml`](../../../configs/datasets/cavelli.yaml).
 
 ## Source
 
@@ -21,7 +21,10 @@ any labels.
 - Subject-level (animal) train/test split via `mighty_mouse.subject_split`, targeting
   10–20% test; the seed was chosen so the greedy split lands in range. Read the script
   output or the CSVs for the resulting sizes.
+- Reproduces version 0 (TR's labels as received) only: `_raw/cavelli/` holds the
+  hand-edited version 1+ labels, so the script refuses to overwrite existing CSVs — point
+  `--dst` elsewhere to regenerate. See `CHANGELOG.md`.
 - Copies only referenced images, writes `project.yaml` (`view_names: []`) and an empty `videos/`.
 
-`configs/datasets/cavelli.yaml` is a draft; all six keypoints already exist in
-`configs/keypoints.yaml`, so stage 2 would need no vocabulary changes.
+All six keypoints already exist in `configs/keypoints.yaml`, so no vocabulary changes
+were needed.

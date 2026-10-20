@@ -3,9 +3,8 @@ exclude:
   sessions:
 
 # Draft (stage 1 only). Left and right pupils/wrists are explicit raw columns, labeled
-# in the same frame, so they map one-to-one (no {side} template). The per-session side
-# below is therefore a placeholder that no mapping reads (same as aind-vbn-face); the
-# `_left`/`_right` in video names is the camera, not the animal's side.
+# in the same frame, so they map one-to-one (no {side} template). The per-session value
+# below is the camera view (the `_left`/`_right` video-name suffix); no mapping reads it.
 keypoints:
   pupil_center_left: pupil_center_left
   pupil_center_right: pupil_center_right
@@ -16,68 +15,68 @@ keypoints:
 
 sessions:
   M1_2026-06-18_16-25-09_000_left: left
-  M1_2026-06-18_16-25-09_000_right: left
+  M1_2026-06-18_16-25-09_000_right: right
   M1_2026-06-18_16-25-09_001_left: left
-  M1_2026-06-18_16-25-09_001_right: left
+  M1_2026-06-18_16-25-09_001_right: right
   M1_2026-07-09_14-23-53_002_left: left
-  M1_2026-07-09_14-23-53_002_right: left
+  M1_2026-07-09_14-23-53_002_right: right
   M1_2026-07-21_11-48-31_000_left: left
-  M1_2026-07-21_11-48-31_000_right: left
+  M1_2026-07-21_11-48-31_000_right: right
   M2_2026-05-29_14-25-55_001_left: left
-  M2_2026-05-29_14-25-55_001_right: left
+  M2_2026-05-29_14-25-55_001_right: right
   M2_2026-05-29_14-25-55_002_left: left
-  M2_2026-05-29_14-25-55_002_right: left
+  M2_2026-05-29_14-25-55_002_right: right
   M2_2026-06-19_14-26-47_000_left: left
-  M2_2026-06-19_14-26-47_000_right: left
+  M2_2026-06-19_14-26-47_000_right: right
   M2_2026-06-19_14-26-47_001_left: left
-  M2_2026-06-19_14-26-47_001_right: left
+  M2_2026-06-19_14-26-47_001_right: right
   M2_2026-06-19_14-26-47_002_left: left
-  M2_2026-06-19_14-26-47_002_right: left
+  M2_2026-06-19_14-26-47_002_right: right
   M2_2026-06-26_13-50-42_000_left: left
-  M2_2026-06-26_13-50-42_000_right: left
+  M2_2026-06-26_13-50-42_000_right: right
   M3_2026-07-08_13-53-18_000_left: left
-  M3_2026-07-08_13-53-18_000_right: left
+  M3_2026-07-08_13-53-18_000_right: right
   M3_2026-07-08_13-53-18_001_left: left
-  M3_2026-07-08_13-53-18_001_right: left
+  M3_2026-07-08_13-53-18_001_right: right
   M3_2026-07-08_13-53-18_002_left: left
-  M3_2026-07-08_13-53-18_002_right: left
+  M3_2026-07-08_13-53-18_002_right: right
   M3_2026-07-10_13-39-50_002_left: left
-  M3_2026-07-10_13-39-50_002_right: left
+  M3_2026-07-10_13-39-50_002_right: right
   M3_2026-07-10_13-39-50_004_left: left
-  M3_2026-07-10_13-39-50_004_right: left
+  M3_2026-07-10_13-39-50_004_right: right
   M3_2026-07-22_15-13-00_000_left: left
-  M3_2026-07-22_15-13-00_000_right: left
+  M3_2026-07-22_15-13-00_000_right: right
   M4_2026-07-15_13-12-49_000_left: left
-  M4_2026-07-15_13-12-49_000_right: left
+  M4_2026-07-15_13-12-49_000_right: right
   M4_2026-07-16_12-13-12_000_left: left
-  M4_2026-07-16_12-13-12_000_right: left
+  M4_2026-07-16_12-13-12_000_right: right
   M4_2026-07-16_12-13-12_001_left: left
-  M4_2026-07-16_12-13-12_001_right: left
+  M4_2026-07-16_12-13-12_001_right: right
   M4_2026-07-16_12-13-12_002_left: left
-  M4_2026-07-16_12-13-12_002_right: left
+  M4_2026-07-16_12-13-12_002_right: right
   M4_2026-07-16_12-13-12_004_left: left
-  M4_2026-07-16_12-13-12_004_right: left
+  M4_2026-07-16_12-13-12_004_right: right
   M4_2026-07-17_12-47-26_000_left: left
-  M4_2026-07-17_12-47-26_000_right: left
+  M4_2026-07-17_12-47-26_000_right: right
   M4_2026-07-23_14-09-58_000_left: left
-  M4_2026-07-23_14-09-58_000_right: left
+  M4_2026-07-23_14-09-58_000_right: right
   M5_2026-07-22_11-13-24_001_left: left
-  M5_2026-07-22_11-13-24_001_right: left
+  M5_2026-07-22_11-13-24_001_right: right
   M5_2026-07-22_11-13-24_002_left: left
-  M5_2026-07-22_11-13-24_002_right: left
+  M5_2026-07-22_11-13-24_002_right: right
   M5_2026-07-23_10-39-38_000_left: left
-  M5_2026-07-23_10-39-38_000_right: left
+  M5_2026-07-23_10-39-38_000_right: right
   M5_2026-07-23_10-39-38_001_left: left
-  M5_2026-07-23_10-39-38_001_right: left
+  M5_2026-07-23_10-39-38_001_right: right
   M5_2026-07-24_11-36-22_000_left: left
-  M5_2026-07-24_11-36-22_000_right: left
+  M5_2026-07-24_11-36-22_000_right: right
   M5_2026-07-24_11-36-22_001_left: left
-  M5_2026-07-24_11-36-22_001_right: left
+  M5_2026-07-24_11-36-22_001_right: right
   M5_2026-07-24_11-36-22_002_left: left
-  M5_2026-07-24_11-36-22_002_right: left
+  M5_2026-07-24_11-36-22_002_right: right
   M5_2026-07-24_11-36-22_003_left: left
-  M5_2026-07-24_11-36-22_003_right: left
+  M5_2026-07-24_11-36-22_003_right: right
   M5_2026-07-24_11-36-22_004_left: left
-  M5_2026-07-24_11-36-22_004_right: left
+  M5_2026-07-24_11-36-22_004_right: right
   M6_2026-08-05_16-44-36_000_left: left
-  M6_2026-08-05_16-44-36_000_right: left
+  M6_2026-08-05_16-44-36_000_right: right
