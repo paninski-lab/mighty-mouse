@@ -4,16 +4,20 @@ See [`README.md`](README.md) for the pseudo-labeling pipeline.
 
 ## Changelog
 
-### 2026-09-26 (MW) (version 0)
-- First versioned snapshot of ibl's label CSVs. This predates the versioning
-  scheme, so v0 is the best-available current state rather than a pristine
-  collaborator copy — it already includes the undocumented pre-versioning
-  edits logged above (2026-06-18 `nose`/`pupil`/`tongue` keypoints added ahead
-  of the iblvideo pseudo-labeling pipeline) plus a full manual review/
-  correction of all ~10k frames in the Lightning Pose app (July 2026, not
-  previously logged here) — these are now full human annotations, not
-  pseudo-labels.
+### 2026-06-18 (MW) (version 1)
+- Added `nose_tip`, `pupil_center_r`, `tongue_end_r`, and `tongue_end_l` as new keypoints
+  to the `ibl-paw` schema (`paw_l`, `paw_r`), filled in with pseudo-labels from the
+  [iblvideo](https://github.com/int-brain-lab/iblvideo) Lightning Pose pipeline run on
+  per-session videos built from each labeled frame plus 2 context frames either side.
+  `nose_tip` and tongue predictions with likelihood < 0.9 were set to NaN, and
+  `pupil_center_r` is the median of the 4 predicted pupil points. See
+  [`README.md`](README.md) for the full pipeline.
+- In July 2026 all ~10k frames (7608 train / 1446 test) were manually reviewed and
+  corrected in the Lightning Pose app, so these are now full human annotations rather
+  than pseudo-labels. The review also made small adjustments to `paw_l`/`paw_r` (about
+  18 train and 8 test coordinates relative to v0).
 
-### 2026-06-18 (MW)
-- Manually added `nose`, `pupil`, and `tongue` as new keypoints to the `ibl-paw` schema
-  ahead of the pseudo-labeling pipeline, which fills them in via iblvideo.
+### 2026-06-15 (MW) (version 0)
+- Imported the `ibl-paw` dataset from `_raw/_dlc/ibl-paw` as received: paw-only labels
+  (`paw_l`, `paw_r`; scorer `lightning_tracker`) for 7609 train and 1446 test rows. The
+  train CSV contains one duplicated row (`8d316998-..._right_flipped/img00305878.png`).
