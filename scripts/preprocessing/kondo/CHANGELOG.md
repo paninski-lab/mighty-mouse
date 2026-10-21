@@ -7,18 +7,12 @@ current keypoint mapping.
 
 ## Changelog
 
-### 2026-09-26 (MW) (version 0)
-- First versioned snapshot of kondo's label CSVs. This predates the versioning
-  scheme, so v0 is the best-available current state rather than a pristine
-  collaborator copy — it already includes the undocumented pre-versioning
-  edits logged above (2026-08-17 manual `rightpawcenter`/`leftpawcenter`
-  adjustments to align with IBL paw labels; 2026-09-26 manual
-  `earroot`/`earlateral`/`eartip` adjustments to align with cheese-2d ear
-  landmark definitions).
-
-### 2026-09-26 (MW)
+### 2026-09-26 (MW) (version 2)
 - Manually adjusted the `earroot`/`earlateral`/`eartip` labels to be consistent with
   the ear landmark definitions used in `cheese-2d`.
+- This snapshot also includes undocumented manual adjustments to other keypoints relative
+  to v1 (`noseroot`, `lowerjaw`, `nosetip`, `eyelateral`, `eyemedial`, `nosebottom`,
+  and a few frames of `lickport`/`tonguetip`); the date of these edits is unknown.
 
 ### 2026-09-22 (MW)
 - Ran `scripts/preprocessing/extract_clips.py` (see
@@ -34,11 +28,16 @@ current keypoint mapping.
   15s each. This is raw-video review, not a label change —
   `CollectedData.csv`/`CollectedData_test.csv` are untouched.
 
-### 2026-08-17 (MW)
+### 2026-08-17 (MW) (version 1)
 - Manually adjusted the `rightpawcenter` and `leftpawcenter` labels to align them
   more closely with the IBL paw labels.
+- v1 is a reconstruction: v0 with only the `rightpawcenter`/`leftpawcenter` columns taken
+  from the current labels (made 2026-10-20; no snapshot was kept at the time).
 
-### 2026-08-14 (MW)
+### 2026-08-14 (MW) (version 0)
 - Initial data (`CollectedData.csv`/`CollectedData_test.csv`, `labeled-data/`,
   `project.yaml`) extracted into `_raw/kondo/` from
   `_raw/_dlc/MouseViewsDLC/dlc-projects/mouse-face-v1`.
+- v0 is the `iter1`–`iter6` rows of that project's per-iteration `CollectedData_KS.csv`
+  files, with `iter6` as the test set (439 train / 120 test frames, 14 keypoints); the
+  `iter7_*` rows were not used. Regenerated from the DLC source on 2026-10-20.
