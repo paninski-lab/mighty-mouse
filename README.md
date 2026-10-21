@@ -150,15 +150,17 @@ as labels are added, so check the CSVs directly rather than recording them here.
 
 | Dataset       | Notes |
 |---------------|-------|
-| facemap       | left-view; bilateral kps lateralized via `{side}` |
-| ibl           | wrist + pupil_center + nose_tip + tongue; human-reviewed (July 2026), supersedes `ibl-paw` |
-| cheese-2d     | four views (L/R/BC/TC) |
-| cazettes-side | left-view; bilateral kps lateralized via `{side}` |
-| kondo         | right-view face + both wrists |
-| kaufman       | right-forepaw digit tips only; subject-level train/test split |
 | aind-vbn-body | left-view body camera (256x256 crop); eyes, pad, ears, nose, tongue tip, both wrists; mostly pseudo-labeled |
 | aind-vbn-face | front-view face camera (256x256 crop around the nose); eyes, pad, nose, tongue tip, wrists for both sides; mostly pseudo-labeled; nose excluded in the config |
 | cavelli       | left- and right-camera side views (merged); pupil, nose tip/bottom, both wrists; subject-level train/test split |
+| cazettes-side | left-view; bilateral kps lateralized via `{side}` |
+| cheese-2d     | four views (L/R/BC/TC) |
+| cheese-3d     | six views (L/R/TL/TR/BC/TC); pseudo-labeled from `cheese-2d` via multi-view triangulation |
+| facemap       | left-view; bilateral kps lateralized via `{side}` |
+| hantman-mv    | side- and front-view reaching task (views concatenated); fingertips and wrists for both paws, eyes, nose, ears (pellet excluded); subject-level train/test split |
+| ibl           | wrist + pupil_center + nose_tip + tongue; human-reviewed (July 2026), supersedes `ibl-paw` |
+| kaufman       | right-forepaw digit tips only; subject-level train/test split |
+| kondo         | right-view face + both wrists |
 
 ---
 
