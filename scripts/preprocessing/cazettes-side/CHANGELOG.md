@@ -8,6 +8,20 @@ for the current keypoint mapping.
 
 ## Changelog
 
+### 2026-10-21 (MW) (version 3)
+- Added `d1_tip_left`, `d2_tip_left`, `d3_tip_left`, and `d4_tip_left` (left-paw fingertips) as
+  new keypoints in `CollectedData.csv` + `CollectedData_test.csv` and `project.yaml`, manually
+  labeled in the Lightning Pose app by LA, LA2, and SI (about 690–730 of 830 train rows and
+  190–200 of 217 test rows per fingertip; unlabeled where the fingertip isn't visible).
+- MW spot-checked the labels and adjusted wrist positions: `leftPaw` changed in 122 train and
+  6 test rows, `rightPaw` in 5 train and 1 test row (a few of those blanked). Individual edits
+  weren't itemized.
+- Corrected mouth/tongue labels in four train frames, all from session `EA115`: `img04486`
+  (`nose`, `upperMouth`, and `lowerMouth` had been shifted one place along the face) and
+  `img008625` (the jaw point was in `upperMouth` with `lowerMouth` empty) were reassigned to the
+  correct keypoints; `img83429` (`upperMouth`, `lowerMouth`, `tipTongue`, and `middleTongue`) and
+  `img217033` (`lowerMouth`) were repositioned.
+
 ### 2026-09-22 (MW)
 - Added `mouse_pose/videos.py` (`make_video_snippet` + motion-energy helpers) and the
   general-purpose `scripts/preprocessing/extract_clips.py` wrapper (ported from an

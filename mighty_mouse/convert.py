@@ -127,7 +127,29 @@ def _post_process_kaufman(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     return suppress_occluded(df, kps)
 
 
+# cazettes-side: every session is lateralized to "left" (configs/datasets/cazettes-side.yaml)
+# -- the camera is on the left side of the body, and only the near (left) paw's fingertips
+# were labeled. The right paw's fingers are visible in some frames too, but were never
+# labeled: an annotation gap, not occlusion. The `{side}` mapping would otherwise give the
+# far-side d{1-4}_tip_right columns the default vis=1 (trained as occluded: uniform heatmap
+# target, teaches low confidence everywhere). Force vis=0 (excluded from the loss entirely,
+# no opinion) for them instead. Everything else keeps the default: the far-side face
+# keypoints really are hidden, and wrist_right has its own labels (rightPaw).
+_CAZETTES_SIDE_FAR_FINGERTIPS = frozenset([
+    "d1_tip_right", "d2_tip_right", "d3_tip_right", "d4_tip_right",
+])
+
+
+def _post_process_cazettes_side(df: pd.DataFrame, config: dict) -> pd.DataFrame:
+    kps = [
+        kp for kp in df.columns.get_level_values(1).unique()
+        if kp in _CAZETTES_SIDE_FAR_FINGERTIPS
+    ]
+    return suppress_occluded(df, kps)
+
+
 POST_PROCESS: dict[str, Callable[[pd.DataFrame, dict], pd.DataFrame]] = {
+    "cazettes-side": _post_process_cazettes_side,
     "hantman-mv": _post_process_hantman_mv,
     "kaufman": _post_process_kaufman,
 }

@@ -126,6 +126,30 @@ class TestPostProcess:
         # other _left keypoints still suppressed everywhere
         assert _vis(result, "eye_top_left") == [0.0, 0.0, 0.0, 0.0]
 
+    def test_post_process_cazettes_side(self, make_processed_df: Callable):
+        df = make_processed_df({
+            "d1_tip_left": [1.0, 2.0],
+            "d1_tip_right": [1.0, 1.0],
+            "d4_tip_right": [1.0, 1.0],
+            "wrist_right": [1.0, 2.0],    # labeled separately: keeps its own signal
+            "eye_top_right": [1.0, 1.0],  # face: far side really is hidden
+        })
+
+        result = post_process(df, {}, "cazettes-side")
+
+        assert _vis(result, "d1_tip_left") == [1.0, 2.0]
+        assert _vis(result, "d1_tip_right") == [0.0, 0.0]
+        assert _vis(result, "d4_tip_right") == [0.0, 0.0]
+        assert _vis(result, "wrist_right") == [1.0, 2.0]
+        assert _vis(result, "eye_top_right") == [1.0, 1.0]
+
+    def test_post_process_cazettes_side_without_fingertips(self, make_processed_df: Callable):
+        df = make_processed_df({"wrist_right": [1.0, 2.0]})
+
+        result = post_process(df, {}, "cazettes-side")
+
+        assert _vis(result, "wrist_right") == [1.0, 2.0]
+
     def test_post_process_kaufman(self, make_processed_df: Callable):
         df = make_processed_df({
             "wrist_left": [1.0, 2.0],
