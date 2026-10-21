@@ -46,24 +46,31 @@ def parse_keypoints(specs: list[str]) -> list[tuple[str, str]]:
     return pairs
 
 
-def verify_untouched(orig: pd.DataFrame, new: pd.DataFrame, keypoints: list[tuple[str, str]]) -> None:
+def verify_untouched(
+    orig: pd.DataFrame, new: pd.DataFrame, keypoints: list[tuple[str, str]]
+) -> None:
     assert list(orig.columns) == list(new.columns) and list(orig.index) == list(new.index)
     edited = {kp for _, kp in keypoints}
     for col in orig.columns:
         if col[1] in edited:
             continue
         o, n = orig[col].astype(float), new[col].astype(float)
-        assert ((o.isna() == n.isna()) & ~((o - n).abs() > 1e-6)).all(), f"untouched column changed: {col}"
+        same = ((o.isna() == n.isna()) & ~((o - n).abs() > 1e-6)).all()
+        assert same, f"untouched column changed: {col}"
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--model_dirs", nargs="+", required=True, type=Path)
     parser.add_argument("--target_dataset", required=True)
     parser.add_argument("--keypoints", nargs="+", required=True)
     parser.add_argument("--confidence_threshold", type=float, default=0.9)
     parser.add_argument("--csvs", nargs="+", default=CSV_NAMES_DEFAULT)
-    parser.add_argument("--out_dir", required=True, type=Path, help="per-model predictions cache + report")
+    parser.add_argument(
+        "--out_dir", required=True, type=Path, help="per-model predictions cache + report",
+    )
     parser.add_argument("--dry_run", action="store_true")
     args = parser.parse_args()
 
@@ -80,7 +87,7 @@ def main():
     from lightning_pose.api import Model  # slow import; `pose` env only
 
     models = None
-    results, report_rows, member_rows = {}, [], []
+    results, report_rows = {}, []
     with tempfile.TemporaryDirectory() as tmp:
         for name in args.csvs:
             orig = read_labels_csv(raw_dir / name)
@@ -93,7 +100,8 @@ def main():
                     models = models or {}
                     if i not in models:
                         models[i] = Model.from_dir2(d)
-                    p = predict(models[i], raw_dir / name, raw_dir, Path(tmp), f"{args.target_dataset}__{name}")
+                    tag = f"{args.target_dataset}__{name}"
+                    p = predict(models[i], raw_dir / name, raw_dir, Path(tmp), tag)
                     p.to_csv(cache)
                 preds.append(p)
             new, n_surv = ensemble(orig, preds, keypoints, args.confidence_threshold)

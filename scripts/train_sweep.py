@@ -61,20 +61,29 @@ def main():
         "--train_frames", default="1",
         help='semicolon-separated frame counts; 1 = all frames',
     )
-    parser.add_argument("--seeds",        default="0",                   help='semicolon-separated rng seeds, e.g. "0;1;2"')
-    parser.add_argument("--backbones",    default="resnet50_animal_ap10k", help='semicolon-separated backbone names')
-    parser.add_argument("--losses_to_use", default="",                   help='comma-separated loss names; empty = supervised only')
-    parser.add_argument("--debug",         action="store_true",          help="Smoke-test run (3 epochs)")
-    parser.add_argument("--dry_run",       action="store_true",          help="Print commands without running")
-    parser.add_argument("--skip_existing", action="store_true",          help="Skip combos whose output dir already exists")
-    parser.add_argument("--eval_only",     action="store_true",          help="Skip training; only run evaluation on existing model dirs")
+    parser.add_argument("--seeds", default="0", help='semicolon-separated rng seeds, e.g. "0;1;2"')
+    parser.add_argument(
+        "--backbones", default="resnet50_animal_ap10k", help='semicolon-separated backbone names',
+    )
+    parser.add_argument(
+        "--losses_to_use", default="", help='comma-separated loss names; empty = supervised only',
+    )
+    parser.add_argument("--debug", action="store_true", help="Smoke-test run (3 epochs)")
+    parser.add_argument("--dry_run", action="store_true", help="Print commands without running")
+    parser.add_argument(
+        "--skip_existing", action="store_true", help="Skip combos whose output dir already exists",
+    )
+    parser.add_argument(
+        "--eval_only", action="store_true",
+        help="Skip training; only run evaluation on existing model dirs",
+    )
     args = parser.parse_args()
 
     csv_files    = parse_semicolon_list(args.csv_files)
     train_frames = parse_semicolon_list(args.train_frames)
     seeds        = parse_semicolon_list(args.seeds)
     backbones    = parse_semicolon_list(args.backbones)
-    losses       = [l for l in args.losses_to_use.split(",") if l]
+    losses       = [x for x in args.losses_to_use.split(",") if x]
 
     combos = build_combos(csv_files, backbones, train_frames, seeds)
     print(f"Total jobs: {len(combos)}")
@@ -89,7 +98,9 @@ def main():
         print(f"\n── {label}")
 
         if not args.eval_only:
-            cmd = make_train_command(csv_file, backbone, train_frames_n, seed, losses, output_dir, args.debug)
+            cmd = make_train_command(
+                csv_file, backbone, train_frames_n, seed, losses, output_dir, args.debug
+            )
             print("   " + " ".join(cmd))
 
             if not args.dry_run:

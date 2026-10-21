@@ -247,7 +247,7 @@ def process_split(
                 build_session_video(session, session_paw, video_path)
                 print(f"    video: {n_labeled * CHUNK_SIZE} frames")
             else:
-                print(f"    video: skipped (exists)")
+                print("    video: skipped (exists)")
 
             if not skip_pipeline or not pqt_path.exists():
                 print(f"    pipeline: running on {video_path}")
@@ -258,7 +258,7 @@ def process_split(
                 )
                 print(f"    pipeline: done -> {Path(pqt_path).name}")
             else:
-                print(f"    pipeline: skipped (parquet exists)")
+                print("    pipeline: skipped (parquet exists)")
 
             face_preds = extract_session_preds(pqt_path, n_labeled)
             face_preds = apply_threshold_and_report(face_preds, session_idx, session)
@@ -266,12 +266,10 @@ def process_split(
 
             result.loc[session_idx, (SCORER, "pupil_center_r", "x")] = cx
             result.loc[session_idx, (SCORER, "pupil_center_r", "y")] = cy
-            result.loc[session_idx, (SCORER, "nose_tip",       "x")] = face_preds["nose_tip_x"].values
-            result.loc[session_idx, (SCORER, "nose_tip",       "y")] = face_preds["nose_tip_y"].values
-            result.loc[session_idx, (SCORER, "tongue_end_r",   "x")] = face_preds["tongue_end_r_x"].values
-            result.loc[session_idx, (SCORER, "tongue_end_r",   "y")] = face_preds["tongue_end_r_y"].values
-            result.loc[session_idx, (SCORER, "tongue_end_l",   "x")] = face_preds["tongue_end_l_x"].values
-            result.loc[session_idx, (SCORER, "tongue_end_l",   "y")] = face_preds["tongue_end_l_y"].values
+            for kp in ("nose_tip", "tongue_end_r", "tongue_end_l"):
+                for coord in ("x", "y"):
+                    values = face_preds[f"{kp}_{coord}"].values
+                    result.loc[session_idx, (SCORER, kp, coord)] = values
             n_sessions_ok += 1
 
         except Exception as e:
@@ -320,11 +318,14 @@ def main(dry_run=False, skip_video=False, skip_pipeline=False):
 
     print("\nDone.")
     if not dry_run:
-        print(f"\nNext steps:")
-        print(f"  1. conda run -n iblvideo2 python scripts/preprocessing/ibl/plot_ibl_face_check.py")
+        print("\nNext steps:")
+        print(
+            "  1. conda run -n iblvideo2 python "
+            "scripts/preprocessing/ibl/plot_ibl_face_check.py"
+        )
         print(f"  2. Review check images in {IBL_DIR / 'labeled-data-check'}/")
-        print(f"  3. python scripts/convert_dataset.py --dataset ibl")
-        print(f"  4. Rebuild merged datasets with scripts/build_dataset.py")
+        print("  3. python scripts/convert_dataset.py --dataset ibl")
+        print("  4. Rebuild merged datasets with scripts/build_dataset.py")
 
 
 if __name__ == "__main__":

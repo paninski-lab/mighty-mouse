@@ -75,7 +75,9 @@ def _load_view(source_dir: Path, view: str) -> tuple[list, dict]:
         video_filename = lf.video.filename
         local_video = source_dir / view / Path(video_filename).name
         if not local_video.exists():
-            raise FileNotFoundError(f"video not found locally: {local_video} (from {video_filename})")
+            raise FileNotFoundError(
+                f"video not found locally: {local_video} (from {video_filename})"
+            )
         session = local_video.stem
 
         frame_name = f"img{lf.frame_idx:08d}.png"
@@ -89,7 +91,7 @@ def _load_view(source_dir: Path, view: str) -> tuple[list, dict]:
             images[rel_path] = img.astype(np.uint8)
 
         row = {"index": rel_path, "session": session, "subject": subject_of(session)}
-        for node, (x, y) in zip(inst.skeleton.nodes, inst.numpy()):
+        for node, (x, y) in zip(inst.skeleton.nodes, inst.numpy(), strict=False):
             name = node.name.replace(" ", "")
             row[f"{name}_x"] = x
             row[f"{name}_y"] = y
@@ -104,12 +106,17 @@ def _rows_to_df(rows: list[dict], keypoints: list[str]) -> pd.DataFrame:
     tuples = [(SCORER, kp, coord) for kp in keypoints for coord in ("x", "y")]
     columns = pd.MultiIndex.from_tuples(tuples, names=["scorer", "bodyparts", "coords"])
     index = [r["index"] for r in rows]
-    data = [[r.get(f"{kp}_{coord}", np.nan) for kp in keypoints for coord in ("x", "y")] for r in rows]
+    data = [
+        [r.get(f"{kp}_{coord}", np.nan) for kp in keypoints for coord in ("x", "y")]
+        for r in rows
+    ]
     return pd.DataFrame(data, columns=columns, index=index)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--seed", type=int, default=0, help="subject-split seed (default: 0)")
     args = parser.parse_args()
 

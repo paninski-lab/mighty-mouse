@@ -54,7 +54,10 @@ def dataset_keypoints(cfg: dict, canonical: dict[str, str]) -> set[str]:
     for src, target in cfg["keypoints"].items():
         if src in excluded:
             continue
-        names = [target.format(side=s) for s in ("left", "right")] if "{side}" in target else [target]
+        if "{side}" in target:
+            names = [target.format(side=s) for s in ("left", "right")]
+        else:
+            names = [target]
         for n in names:
             if n not in canonical:
                 raise ValueError(f"{n!r} (from source keypoint {src!r}) is not in keypoints.yaml")

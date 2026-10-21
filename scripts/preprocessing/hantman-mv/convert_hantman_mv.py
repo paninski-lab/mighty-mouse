@@ -58,7 +58,9 @@ def copy_images(index: pd.Index, source_dir: Path, out_dir: Path) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--seed", type=int, default=0, help="subject-split seed (default: 0)")
     args = parser.parse_args()
 

@@ -119,7 +119,9 @@ def load_predictions_csv(path: Path, target_dataset: str, target_index: pd.Index
     target image has no prediction.
     """
     preds = read_labels_csv(path)
-    preds.index = preds.index.str.replace(f"labeled-data/{target_dataset}/", "labeled-data/", n=1, regex=False)
+    preds.index = preds.index.str.replace(
+        f"labeled-data/{target_dataset}/", "labeled-data/", n=1, regex=False
+    )
     if preds.index.duplicated().any():
         sys.exit(f"{path}: duplicate image paths after prefix stripping")
     missing = target_index.difference(preds.index)
@@ -183,13 +185,17 @@ def fill_missing(
     for pred_kp, kp in keypoints:
         x_col, y_col = (scorer, kp, "x"), (scorer, kp, "y")
         px_col, py_col, pl_col = (
-            (pred_scorer, pred_kp, "x"), (pred_scorer, pred_kp, "y"), (pred_scorer, pred_kp, "likelihood")
+            (pred_scorer, pred_kp, "x"),
+            (pred_scorer, pred_kp, "y"),
+            (pred_scorer, pred_kp, "likelihood"),
         )
 
         if x_col not in orig.columns or y_col not in orig.columns:
             raise KeyError(f"keypoint {kp!r} not found in target CSV columns")
         if px_col not in preds.columns or pl_col not in preds.columns:
-            raise KeyError(f"keypoint {pred_kp!r} not found in predictions (model wasn't trained on it?)")
+            raise KeyError(
+                f"keypoint {pred_kp!r} not found in predictions (model wasn't trained on it?)"
+            )
 
         missing_mask = orig[x_col].isna()
         allowed = unprotected & (True if overwrite else missing_mask)
@@ -224,13 +230,19 @@ def verify_untouched(orig: pd.DataFrame, filled: pd.DataFrame, editable: pd.Data
         f = filled.loc[locked, col].astype(float)
         bad = (o.isna() != f.isna()) | ((o - f).abs() > 1e-6)
         if bad.any():
-            raise AssertionError(f"{bad.sum()} cell(s) outside the editable set changed in column {col}")
+            raise AssertionError(
+                f"{bad.sum()} cell(s) outside the editable set changed in column {col}"
+            )
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument("--model_dir", type=Path, help="path to a trained Lightning Pose model dir")
+    source.add_argument(
+        "--model_dir", type=Path, help="path to a trained Lightning Pose model dir",
+    )
     source.add_argument(
         "--predictions_csvs", nargs="+", type=Path,
         help="precomputed LP predictions CSVs to fill from instead of running a model, "
@@ -256,14 +268,18 @@ def main():
     )
     parser.add_argument(
         "--overwrite", action="store_true",
-        help="also replace cells that already hold a label when the prediction clears the threshold",
+        help="also replace cells that already hold a label when the prediction clears "
+        "the threshold",
     )
     parser.add_argument(
         "--protect_rows_from",
         help="label CSV (relative to the target dataset dir, or absolute) whose image paths "
-        "are never modified in any target CSV — e.g. the hand-corrected subset the model trained on",
+        "are never modified in any target CSV — e.g. the hand-corrected subset the model "
+        "trained on",
     )
-    parser.add_argument("--dry_run", action="store_true", help="print the inventory without writing anything")
+    parser.add_argument(
+        "--dry_run", action="store_true", help="print the inventory without writing anything",
+    )
     args = parser.parse_args()
 
     if args.model_dir and not args.model_dir.is_dir():
@@ -310,10 +326,13 @@ def main():
             orig = read_labels_csv(orig_path)
 
             if args.predictions_csvs:
-                preds = load_predictions_csv(args.predictions_csvs[i], args.target_dataset, orig.index)
+                preds = load_predictions_csv(
+                    args.predictions_csvs[i], args.target_dataset, orig.index
+                )
                 print(f"{name}: using predictions from {args.predictions_csvs[i]}")
             else:
-                preds = predict_with_model(model, orig_path, tmp / f"{args.target_dataset}__{name}", raw_dir)
+                tmp_csv = tmp / f"{args.target_dataset}__{name}"
+                preds = predict_with_model(model, orig_path, tmp_csv, raw_dir)
 
             filled, counts, n_overwritten, cells_filled_per_row, editable = fill_missing(
                 orig, preds, keypoints, args.confidence_threshold, args.overwrite, protected_rows,
@@ -339,7 +358,8 @@ def main():
         for kp, n in counts.items():
             if n:
                 n_over = grand_overwritten[name][kp]
-                print(f"  {kp}: +{n}" + (f" ({n_over} overwrote an existing label)" if n_over else ""))
+                note = f" ({n_over} overwrote an existing label)" if n_over else ""
+                print(f"  {kp}: +{n}{note}")
             keypoint_totals[kp] += n
     print(f"\ntotal cells filled across all CSVs: {sum(keypoint_totals.values())}")
     print("per-keypoint total:")
@@ -356,7 +376,10 @@ def main():
     for name, filled in filled_frames.items():
         filled.to_csv(raw_dir / name)
     print(f"\nWrote updated CSVs: {[str(raw_dir / n) for n in args.csvs]}")
-    print("Note: version NOT bumped — run bump_version.py yourself once you've verified the result.")
+    print(
+        "Note: version NOT bumped — run bump_version.py yourself once you've verified "
+        "the result."
+    )
 
 
 if __name__ == "__main__":

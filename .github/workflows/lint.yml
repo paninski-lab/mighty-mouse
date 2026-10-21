@@ -27,8 +27,7 @@ jobs:
 
       - name: Lint with ruff
         id: ruff
-        # same scope as .pre-commit-config.yaml; scripts/ is not yet lint-clean
-        run: ruff check mighty_mouse tests
+        run: ruff check .
         # Reads config from [tool.ruff.lint] in pyproject.toml
 
       - name: Show fix instructions if linting failed
@@ -38,8 +37,8 @@ jobs:
           echo "Linting failed!"
           echo ""
           echo "To auto-fix issues locally, run:"
-          echo "  ruff check --fix mighty_mouse tests"
+          echo "  ruff check --fix ."
           echo ""
           echo "To see all violations without fixing, run:"
-          echo "  ruff check mighty_mouse tests"
+          echo "  ruff check ."
           echo ""

@@ -14,9 +14,9 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from mighty_mouse.paths import load_paths, repo_root
-
 import corpus_summary
+
+from mighty_mouse.paths import load_paths, repo_root
 
 CSV_NAMES = ["CollectedData.csv", "CollectedData_test.csv"]
 
@@ -43,7 +43,8 @@ def snapshot_matches_live(raw_dir: Path, versions_dir: Path, version: int) -> bo
 def logged_versions(changelog_file: Path) -> list[int]:
     if not changelog_file.exists():
         return []
-    return [int(v) for v in re.findall(r"^###.*\(version (\d+)\)", changelog_file.read_text(), re.M)]
+    text = changelog_file.read_text()
+    return [int(v) for v in re.findall(r"^###.*\(version (\d+)\)", text, re.M)]
 
 
 def insert_changelog_entry(changelog_file: Path, dataset: str, entry: str) -> None:
@@ -51,7 +52,10 @@ def insert_changelog_entry(changelog_file: Path, dataset: str, entry: str) -> No
     if changelog_file.exists():
         old_text = changelog_file.read_text()
         if marker not in old_text:
-            sys.exit(f"{changelog_file} has no '## Changelog' section — fix the header manually before bumping.")
+            sys.exit(
+                f"{changelog_file} has no '## Changelog' section — "
+                "fix the header manually before bumping."
+            )
         head, _, tail = old_text.partition(marker)
         tail = tail.lstrip("\n")
         new_text = f"{head}{marker}\n{entry}\n{tail}" if tail else f"{head}{marker}\n{entry}"
@@ -62,15 +66,21 @@ def insert_changelog_entry(changelog_file: Path, dataset: str, entry: str) -> No
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("dataset", help="Dataset name, e.g. 'kondo' (must match a directory under raw_dir)")
-    parser.add_argument("--initials", required=True, help="Initials for the changelog entry, e.g. 'MW'")
+    parser.add_argument(
+        "dataset", help="Dataset name, e.g. 'kondo' (must match a directory under raw_dir)",
+    )
+    parser.add_argument(
+        "--initials", required=True, help="Initials for the changelog entry, e.g. 'MW'",
+    )
     parser.add_argument(
         "--message-file",
         required=True,
         type=Path,
         help="Path to a markdown file with the changelog entry body (a '- ...' bullet list)",
     )
-    parser.add_argument("--dry-run", action="store_true", help="Show what would happen without writing anything")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would happen without writing anything",
+    )
     args = parser.parse_args()
 
     paths = load_paths()
@@ -99,7 +109,8 @@ def main():
             )
         next_version = current_version + 1
     else:
-        next_version = 0  # v0 = the dataset as received (collaborator raw labels, or best-available snapshot)
+        # v0 = the dataset as received (collaborator raw labels, or best-available snapshot)
+        next_version = 0
 
     changelog_dir = repo_root() / "scripts" / "preprocessing" / args.dataset
     if not changelog_dir.is_dir():
@@ -116,8 +127,9 @@ def main():
     if logged and next_version <= max(logged):
         sys.exit(
             f"{changelog_file} already records version {max(logged)}, but {raw_dir} would bump to "
-            f"version {next_version}. VERSION.txt / versions/ are probably missing or stale on this "
-            "machine — copy them over from wherever the dataset was last versioned before bumping."
+            f"version {next_version}. VERSION.txt / versions/ are probably missing or stale "
+            "on this machine — copy them over from wherever the dataset was last versioned "
+            "before bumping."
         )
 
     message = args.message_file.read_text().rstrip("\n")
@@ -128,7 +140,8 @@ def main():
     entry = f"### {today} ({args.initials}) (version {next_version})\n{message}\n"
 
     print(f"Dataset:  {args.dataset}")
-    print(f"Version:  {current_version if current_version is not None else '(none)'} -> {next_version}")
+    shown = current_version if current_version is not None else '(none)'
+    print(f"Version:  {shown} -> {next_version}")
     print(f"Snapshot: {[str(raw_dir / n) for n in CSV_NAMES]} -> {versions_dir}/")
     print(f"Marker:   {version_file}")
     print(f"Log:      {changelog_file}")
@@ -144,7 +157,9 @@ def main():
     for name in CSV_NAMES:
         dst = snapshot_path(versions_dir, name, next_version)
         if dst.exists():
-            sys.exit(f"{dst} already exists — refusing to overwrite. Inconsistent state, fix manually.")
+            sys.exit(
+                f"{dst} already exists — refusing to overwrite. Inconsistent state, fix manually."
+            )
         shutil.copy2(raw_dir / name, dst)
 
     version_file.write_text(f"{next_version}\n")
@@ -155,7 +170,10 @@ def main():
     try:
         corpus_summary.main()
     except Exception as e:  # the bump itself already succeeded; don't make it look failed
-        print(f"WARNING: bump done, but corpus summary failed: {e}\nRe-run scripts/corpus_summary.py.")
+        print(
+            f"WARNING: bump done, but corpus summary failed: {e}\n"
+            "Re-run scripts/corpus_summary.py."
+        )
 
 
 if __name__ == "__main__":
