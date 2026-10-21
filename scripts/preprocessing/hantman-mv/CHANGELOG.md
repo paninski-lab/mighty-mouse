@@ -4,7 +4,7 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
 
 ## Changelog
 
-### 2026-10-17 (MW) (version 2)
+### 2026-10-17 (MW) (version 4)
 - Added `d1_tip_left`, `d2_tip_left`, `d3_tip_left`, `d4_tip_left` and `wrist_left` to
   `project.yaml` + both `CollectedData*.csv` files. Fingertips come from SG's
   pseudo-labeling plus manual adjustment (front view only; side view not labeled or
@@ -13,7 +13,7 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
 - Labeled counts (front view, of 96 train / 15 test frames): `d1`–`d4_tip_left` 51–59 train,
   6–9 test; `wrist_left` 75 train, 9 test. Side view: no fingertips, `wrist_left` in 51
   train and 2 test frames.
-- No existing column changed (0 cells differ from version 1), including `nose_top`; SG's
+- No existing column changed (0 cells differ from version 3), including `nose_top`; SG's
   separate `nose_tip`/`hand_*`/`wrist` edits in `tmp/` were not taken.
 - Pipeline changes to support the new left-paw labels:
   - [`configs/datasets/hantman-mv.yaml`](../../../configs/datasets/hantman-mv.yaml): mapped
@@ -29,7 +29,7 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
   - New `check_duplicate_targets` validation: two source keypoints may not resolve to the
     same canonical name.
 
-### 2026-09-29 (MW) (version 1)
+### 2026-09-29 (MW) (version 3)
 - Added `nose_top` as a new keypoint to `project.yaml` + both `CollectedData*.csv` files
   (via `scripts/add_keypoints.py`), and manually labeled it in the LP app in every frame
   (192/192 train, 30/30 test, front and side views). The canonical name already existed
@@ -37,16 +37,6 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
   [`configs/datasets/hantman-mv.yaml`](../../../configs/datasets/hantman-mv.yaml).
 - Manually adjusted `nose_tip` in front-view frames (27 train, 12 test; median shift
   ~4 px, max ~8 px). No side-view `nose_tip` labels changed.
-
-### 2026-09-26 (MW) (version 0)
-- First versioned snapshot of hantman-mv's label CSVs. This predates the
-  versioning scheme, so v0 is the best-available current state rather than a
-  pristine collaborator copy — it already includes the undocumented
-  pre-versioning edits logged above (2026-09-15 new eye/nose keypoints +
-  manual labels, derived-then-manually-corrected `wrist_new` column;
-  2026-09-17 empty `ear_*` keypoints added). Neither of those additions is
-  reproduced by `convert_hantman_mv.py` — see the note at the bottom of this
-  changelog.
 
 ### 2026-09-22 (MW)
 - Ran `scripts/preprocessing/extract_clips.py` (see
@@ -70,7 +60,7 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
   Raw-video review only, not a label change — `CollectedData*.csv` files are
   untouched.
 
-### 2026-09-17 (MW)
+### 2026-09-17 (MW) (version 2)
 - Added `ear_top`, `ear_tip`, `ear_bottom`, and `ear_base` as new keypoints (all rows
   empty — ears are never visible in this view) to `project.yaml` + both
   `CollectedData*.csv` files, and mapped `ear_*: ear_*_{side}` in
@@ -85,7 +75,7 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
   `eye_*_left`/digit/wrist `_left` columns are unaffected and still forced to
   `visible=0`.
 
-### 2026-09-15 (MW)
+### 2026-09-15 (MW) (version 1)
 - Added `eye_back`, `eye_top`, `eye_front`, `eye_bottom`, `nose_tip`, and `nose_bottom`
   as new keypoints to `project.yaml` + both `CollectedData*.csv` files, and manually
   labeled them in the LP app (no source ever provided values for them).
@@ -97,6 +87,17 @@ See [`README.md`](README.md) for the conversion pipeline and design decisions.
   exactly row-for-row — treat it as how the column originated, not a reproducible
   derivation of its current values. Maps to `wrist_{side}` (reuses existing canonical
   `wrist_left`/`wrist_right` — no new vocab needed).
+- This snapshot also includes undocumented manual adjustments to the original finger/paw
+  keypoints relative to v0 (5–24 train frames per keypoint across `d{1-4}_{tip,middle,base}`,
+  `hand_{middle,lateral,medial}`, and `wrist`; 5–8 test frames each).
+
+### 2026-09-15 (MW) (version 0)
+- Built `_raw/hantman-mv` from the multi-view DLC project `_raw/_dlc/hantman-mv` with
+  `convert_hantman_mv.py` (default seed): 192 train / 30 test frames (front and side
+  views), 17 finger/paw/pellet keypoints, no label changes. See
+  [`README.md`](README.md) for the pipeline.
+- The v0 snapshot was regenerated on 2026-10-20 by re-running the converter's CSV logic
+  (same rows and order as the later snapshots), since versioning post-dates the import.
 
 **Neither addition above is reproduced by `convert_hantman_mv.py`.** Both are manual
 edits to the stage-1 output; the raw source (`_raw/_dlc/hantman-mv`) still only has the
