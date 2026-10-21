@@ -1,6 +1,7 @@
 """Tests for mighty_mouse.datasets."""
 
-from mighty_mouse.configs import default_configs_dir
+from pathlib import Path
+
 from mighty_mouse.datasets import ALL_DATASETS
 
 
@@ -14,6 +15,6 @@ class TestAllDatasets:
         assert ALL_DATASETS == sorted(ALL_DATASETS)
 
     def test_all_datasets_have_config(self):
-        datasets_dir = default_configs_dir() / "datasets"
+        datasets_dir = Path(__file__).parents[1] / "configs" / "datasets"
         missing = [d for d in ALL_DATASETS if not (datasets_dir / f"{d}.yaml").exists()]
         assert missing == []
