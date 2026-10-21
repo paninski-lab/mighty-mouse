@@ -2,7 +2,7 @@ dataset,version,train_frames,test_frames,num_keypoints,eye,nose / mouth (lateral
 aind-vbn-body,1,489,74,15,4,0,4,2,4,1
 aind-vbn-face,1,490,74,8,4,0,1,2,0,1
 cavelli,1,218,47,4,1,0,2,0,0,1
-cazettes-side,0,830,217,11,1,0,5,0,4,1
+cazettes-side,2,830,217,11,1,0,5,0,4,1
 cheese-2d,2,665,291,17,4,1,5,2,4,1
 cheese-3d,3,1692,486,18,5,1,5,2,4,1
 facemap,0,2400,100,13,5,0,4,0,4,0

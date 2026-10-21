@@ -8,14 +8,6 @@ for the current keypoint mapping.
 
 ## Changelog
 
-### 2026-09-26 (MW) (version 0)
-- First versioned snapshot of cazettes-side's label CSVs. This predates the
-  versioning scheme, so v0 is the best-available current state rather than a
-  pristine collaborator copy — it already includes the undocumented
-  pre-versioning edits logged above (2026-08-07 `pupilCenter` keypoint added +
-  manual `rightPaw`/`leftPaw` adjustments; 2026-09-17 empty `ear_*` keypoints
-  added).
-
 ### 2026-09-22 (MW)
 - Added `mouse_pose/videos.py` (`make_video_snippet` + motion-energy helpers) and the
   general-purpose `scripts/preprocessing/extract_clips.py` wrapper (ported from an
@@ -34,7 +26,7 @@ for the current keypoint mapping.
   clips, not label changes — `CollectedData.csv`/`CollectedData_test.csv` are
   untouched.
 
-### 2026-09-17 (MW)
+### 2026-09-17 (MW) (version 2)
 - Added `ear_top`, `ear_tip`, `ear_bottom`, and `ear_base` as new keypoints
   (all rows empty — ears are never visible in this side view) to
   `CollectedData.csv` + `CollectedData_test.csv`, `project.yaml`, and the
@@ -43,7 +35,7 @@ for the current keypoint mapping.
   (`ear_*: ear_*_{side}`). All four canonical names already existed in
   `configs/keypoints.yaml`/`model.yaml`, so no vocab changes were needed.
 
-### 2026-08-07 (MW)
+### 2026-08-07 (MW) (version 1)
 - Added the `pupilCenter` keypoint and manually labeled it in the Lightning Pose
   app — all 830 rows across `CollectedData.csv` + `CollectedData_test.csv` are
   labeled (no NaNs).
@@ -52,3 +44,18 @@ for the current keypoint mapping.
   `_raw/cazettes-side/labeled-data/<session>/` (2026-09-17) — they predated this
   change and had no `pupilCenter` column, out of sync with the top-level
   `CollectedData.csv`/`CollectedData_test.csv`.
+
+### 2026-08-01 (MW) (version 0)
+- Imported the dataset (scorer: Behnaz) from the source DLC project
+  (`_raw/_dlc/cazettes-side/`): 1047 labeled frames, 8 keypoints (`nose`,
+  `upperMouth`, `lowerMouth`, `rightPaw`, `leftPaw`, `tipTongue`, `middleTongue`,
+  `backTongue`). The per-session `CollectedData_Behnaz.csv` files were merged into one
+  table with `labeled-data/<session>/<img>` paths, then split by subject with
+  `split_train_test.py` (test = `FC075`, `FC076`) into `CollectedData.csv` (830 frames)
+  and `CollectedData_test.csv` (217 frames).
+- The two `FC076` sessions with a space in the source folder name
+  (`Body0 -Trimcropped`) were renamed to `Body0-Trimcropped`, matching the folders and
+  `sessions` config used since.
+- The v0 snapshot was reconstructed on 2026-10-20 from the `_dlc` source (the merged
+  table is byte-identical to the original pre-split `CollectedData_full.csv`), since
+  versioning post-dates these edits.
