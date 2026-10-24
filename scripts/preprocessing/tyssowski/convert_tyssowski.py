@@ -41,6 +41,8 @@ TEST_FRACTION = 0.125
 # nose and mouth are used; everything else (thumb, other joints, wrist, elbow, shoulder,
 # pellet) is dropped from the output.
 KEEP_KEYPOINTS = ["d2_3", "d3_3", "d4_3", "d5_3", "hand", "nose", "mouth"]
+# project.yaml skeleton: wrist (source "hand") to each digit tip
+SKELETON = [["hand", tip] for tip in ["d2_3", "d3_3", "d4_3", "d5_3"]]
 VIEW_CSVS = ["CollectedData_side.csv", "CollectedData_front.csv"]
 
 
@@ -99,6 +101,7 @@ def main() -> None:
     with open(source_dir / "project.yaml") as f:
         project = yaml.safe_load(f)
     old_views = project.get("view_names")
+    project["skeleton"] = SKELETON
     project["keypoint_names"] = [k for k in project["keypoint_names"] if k in KEEP_KEYPOINTS]
     project["view_names"] = []
     with open(out_dir / "project.yaml", "w") as f:

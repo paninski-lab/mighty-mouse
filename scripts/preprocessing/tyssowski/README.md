@@ -22,7 +22,8 @@ the session names) and write a `project.yaml` with `view_names: []`. Differences
 - Source names are kept; mapping is in `configs/datasets/tyssowski.yaml`:
   `d2_3`→`d1_tip_right`, `d3_3`→`d2_tip_right`, `d4_3`→`d3_tip_right`,
   `d5_3`→`d4_tip_right` (the canonical `d1_tip` is the first finger, so the source
-  thumb has no canonical home), `hand`→`wrist_right`, `nose`→`nose_tip`, `mouth`→`mouth`.
+  thumb has no canonical home), `hand`→`wrist_right`, `nose`→`nose_tip`. `mouth` stays in the raw CSVs for labeling but is in
+  `exclude.keypoints`, so it isn't in the corpus.
   Laterality (`right`, all sessions) was confirmed by the user, not inferred.
 
 ## Design notes
@@ -32,6 +33,7 @@ the session names) and write a `project.yaml` with `view_names: []`. Differences
 - **Left paw**: not labeled yet, so `POST_PROCESS["tyssowski"]` (`mighty_mouse/convert.py`)
   forces `wrist_left`/`d{1-4}_tip_left` to `visible=0` (annotation gap, not occlusion).
   Once left fingertips are labeled, revisit (see `hantman-mv` for the by-view handling).
+- `project.yaml` carries a `skeleton` connecting `hand` (wrist) to each digit tip.
 - Only CSV-referenced images are copied; `videos/` is created empty.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for label history.

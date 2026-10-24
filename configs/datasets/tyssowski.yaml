@@ -1,8 +1,13 @@
-# Source keypoints not listed here (thumb d1, d{2-5}_{1,2}, wrist, elbow, shoulder, pellet)
+# `mouth` is kept in the raw CSVs (for labeling) but excluded from the corpus. Source
+# keypoints not listed here (thumb d1, d{2-5}_{1,2}, wrist, elbow, shoulder, pellet)
 # were dropped from the CSVs by scripts/preprocessing/tyssowski/convert_tyssowski.py, so
-# there is no exclude list. Source digits are offset from canonical ones: d2 (index) is the
+# they need no exclude entry. Source digits are offset from canonical ones: d2 (index) is the
 # canonical d1, ..., d5 is the canonical d4; _3 is the tip. The thumb has no canonical home.
 # Plain _right targets (not {side}), so no all-NaN _left columns are emitted.
+exclude:
+  keypoints:
+    - mouth
+
 keypoints:
   d2_3: d1_tip_right
   d3_3: d2_tip_right
@@ -10,7 +15,6 @@ keypoints:
   d5_3: d4_tip_right
   hand: wrist_right
   nose: nose_tip
-  mouth: mouth
 
 sessions:
   M399_20240528_v004_front: right
