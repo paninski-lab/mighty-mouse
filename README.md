@@ -161,6 +161,7 @@ as labels are added, so check the CSVs directly rather than recording them here.
 | ibl           | wrist + pupil_center + nose_tip + tongue; human-reviewed (July 2026), supersedes `ibl-paw` |
 | kaufman       | right-forepaw digit tips only; subject-level train/test split |
 | kondo         | right-view face + both wrists |
+| tyssowski     | side- and front-view reaching task (views concatenated; hantman-style); right-paw fingertips and wrist, nose tip, mouth; subject-level train/test split |
 
 ---
 

@@ -22,4 +22,5 @@ ALL_DATASETS = [
     "ibl",
     "kaufman",
     "kondo",
+    "tyssowski",
 ]

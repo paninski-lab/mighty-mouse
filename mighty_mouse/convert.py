@@ -148,10 +148,23 @@ def _post_process_cazettes_side(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     return suppress_occluded(df, kps)
 
 
+# tyssowski: every session is lateralized to "right" (configs/datasets/tyssowski.yaml) and
+# only the right paw was labeled -- same situation as kaufman above. The left paw is an
+# annotation gap, not occlusion, so force vis=0 for the left wrist/fingertips rather than
+# the default vis=1. (No left-side face keypoints are mapped, so nothing else to handle.)
+_TYSSOWSKI_LEFT_FOREPAW = _KAUFMAN_LEFT_FOREPAW
+
+
+def _post_process_tyssowski(df: pd.DataFrame, config: dict) -> pd.DataFrame:
+    kps = [kp for kp in df.columns.get_level_values(1).unique() if kp in _TYSSOWSKI_LEFT_FOREPAW]
+    return suppress_occluded(df, kps)
+
+
 POST_PROCESS: dict[str, Callable[[pd.DataFrame, dict], pd.DataFrame]] = {
     "cazettes-side": _post_process_cazettes_side,
     "hantman-mv": _post_process_hantman_mv,
     "kaufman": _post_process_kaufman,
+    "tyssowski": _post_process_tyssowski,
 }
 
 

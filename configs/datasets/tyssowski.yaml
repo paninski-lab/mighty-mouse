@@ -1,0 +1,41 @@
+# Source keypoints not listed here (thumb d1, d{2-5}_{1,2}, wrist, elbow, shoulder, pellet)
+# were dropped from the CSVs by scripts/preprocessing/tyssowski/convert_tyssowski.py, so
+# there is no exclude list. Source digits are offset from canonical ones: d2 (index) is the
+# canonical d1, ..., d5 is the canonical d4; _3 is the tip. The thumb has no canonical home.
+# Plain _right targets (not {side}), so no all-NaN _left columns are emitted.
+keypoints:
+  d2_3: d1_tip_right
+  d3_3: d2_tip_right
+  d4_3: d3_tip_right
+  d5_3: d4_tip_right
+  hand: wrist_right
+  nose: nose_tip
+  mouth: mouth
+
+sessions:
+  M399_20240528_v004_front: right
+  M399_20240528_v004_side: right
+  M406_20240822_v048_front: right
+  M406_20240822_v048_side: right
+  M408_20241122b_v115_front: right
+  M408_20241122b_v115_side: right
+  M409_20241119_v018_front: right
+  M409_20241119_v018_side: right
+  M410_20241120_v101_front: right
+  M410_20241120_v101_side: right
+  M419_20250107_v033_front: right
+  M419_20250107_v033_side: right
+  M419_20250204_v010_front: right
+  M419_20250204_v010_side: right
+  M432_20250415b_v016_front: right
+  M432_20250415b_v016_side: right
+  M434_20250425_v024_front: right
+  M434_20250425_v024_side: right
+  M434_20250430a_v054_front: right
+  M434_20250430a_v054_side: right
+  M436_20250718_v050_front: right
+  M436_20250718_v050_side: right
+  M436_20250724_v132_front: right
+  M436_20250724_v132_side: right
+  M452_20251024_v009_front: right
+  M452_20251024_v009_side: right

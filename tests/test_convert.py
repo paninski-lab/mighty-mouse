@@ -165,6 +165,19 @@ class TestPostProcess:
         assert _vis(result, "d1_tip_right") == [1.0, 1.0]
         assert _vis(result, "eye_top_left") == [1.0, 1.0]
 
+    def test_post_process_tyssowski(self, make_processed_df: Callable):
+        df = make_processed_df({
+            "wrist_left": [1.0, 2.0],
+            "d2_tip_left": [1.0, 1.0],
+            "d2_tip_right": [1.0, 1.0],
+        })
+
+        result = post_process(df, {}, "tyssowski")
+
+        assert _vis(result, "wrist_left") == [0.0, 2.0]
+        assert _vis(result, "d2_tip_left") == [0.0, 0.0]
+        assert _vis(result, "d2_tip_right") == [1.0, 1.0]
+
 
 class TestRawDatasetDir:
     """Test the function raw_dataset_dir."""
