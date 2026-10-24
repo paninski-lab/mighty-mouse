@@ -4,6 +4,15 @@ See [`README.md`](README.md) for the pseudo-labeling pipeline.
 
 ## Changelog
 
+### 2026-10-24 (MW) (version 2)
+- Added four ear keypoints (`ear_base`, `ear_tip`, `ear_top`, `ear_bottom`) to the schema.
+  All ear labels were manually reviewed and adjusted by hand in the Lightning Pose app
+  (not itemized per frame). Not every frame has every ear point: `ear_tip` and `ear_top`
+  are labeled on fewer frames (~3.9k / ~2.5k of 7608 train) than `ear_base` / `ear_bottom`
+  (~6.9k / ~6.8k).
+- A small number of coordinates in existing keypoints also differ from v1 (about 202 train
+  and 10 test); these edits were not itemized.
+
 ### 2026-06-18 (MW) (version 1)
 - Added `nose_tip`, `pupil_center_r`, `tongue_end_r`, and `tongue_end_l` as new keypoints
   to the `ibl-paw` schema (`paw_l`, `paw_r`), filled in with pseudo-labels from the
