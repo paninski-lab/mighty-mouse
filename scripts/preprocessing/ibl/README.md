@@ -5,7 +5,7 @@ Generates pseudo-labels for face keypoints (pupil, nose, tongue) by running the
 sessions from `_raw/ibl-paw`, then merges them with the existing paw labels.
 
 NOTE: after creating the pseudo-labels, all ~10k frames were reviewed and adjusted as necessary
-in the Lightning Pose app (July 2026). Therefore the provided `ibl` labels are no longer 
+in the Lightning Pose app (July 2026). Therefore the provided `ibl` labels are no longer
 pseudo-labels, but full human annotations
 
 See [`CHANGELOG.md`](CHANGELOG.md) for keypoint/label history.

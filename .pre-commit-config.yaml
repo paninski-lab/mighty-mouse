@@ -1,5 +1,5 @@
 default_stages: [pre-commit]
-files: ^(mighty_mouse|tests)/
+files: ^(mighty_mouse|tests|scripts)/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

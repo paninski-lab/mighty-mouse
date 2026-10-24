@@ -3,9 +3,10 @@
 
 For each dataset in ALL_DATASETS: train/test frame counts (one frame = one labeled image
 row in the raw CollectedData[_test].csv, minus sessions the dataset config excludes),
-the label version, the number of labels (see count_labels), the number of canonical keypoints the dataset provides, and that
-count broken down by the region headers in configs/keypoints.yaml. Left/right pairs are
-collapsed into one keypoint (lr-flip augmentation makes the side irrelevant).
+the label version, the number of labels (see count_labels), the number of canonical
+keypoints the dataset provides, and that count broken down by the region headers in
+configs/keypoints.yaml. Left/right pairs are collapsed into one keypoint (lr-flip
+augmentation makes the side irrelevant).
 
 The TOTAL row sums frames; its region columns count datasets with >0 keypoints there.
 

@@ -62,7 +62,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--seed", type=int, default=1, help="subject-split seed (default: 1; 0 gives 15.7% test)")
+    parser.add_argument(
+        "--seed", type=int, default=1,
+        help="subject-split seed (default: 1; 0 gives 15.7%% test)",
+    )
     args = parser.parse_args()
 
     paths = load_paths()
