@@ -20,8 +20,8 @@ the session names) and write a `project.yaml` with `view_names: []`. Differences
   `exclude` list) to keep the labeling app uncluttered. Only `KEEP_KEYPOINTS` in the script
   survive: `d{2-5}_3`, `hand`, `nose`, `mouth`.
 - Source names are kept; mapping is in `configs/datasets/tyssowski.yaml`:
-  `d2_3`→`d1_tip_right`, `d3_3`→`d2_tip_right`, `d4_3`→`d3_tip_right`,
-  `d5_3`→`d4_tip_right` (the canonical `d1_tip` is the first finger, so the source
+  `d5_3`→`d1_tip_right`, `d4_3`→`d2_tip_right`, `d3_3`→`d3_tip_right`,
+  `d2_3`→`d4_tip_right` (digit order is reversed relative to the other labs; the canonical `d1_tip` is the first finger, so the source
   thumb has no canonical home), `hand`→`wrist_right`, `nose`→`nose_tip`. `mouth` stays in the raw CSVs for labeling but is in
   `exclude.keypoints`, so it isn't in the corpus.
   Laterality (`right`, all sessions) was confirmed by the user, not inferred.
