@@ -21,6 +21,7 @@ ALL_DATASETS = [
     "hantman-mv",
     "ibl",
     "kaufman",
+    "kaufman-water",
     "kondo",
     "tyssowski",
 ]

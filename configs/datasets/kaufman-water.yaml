@@ -1,0 +1,57 @@
+exclude:
+  keypoints:
+    - RFPk1
+    - RFPk2
+    - RFPk3
+    - RFPk4
+    - RFPp1
+    - RFPp2
+    - RFPp3
+    - RFPp4
+    - RFPp5
+    - RFLe1
+    - RFLs1
+    - Nose1
+    - Nose2
+    - Tng1
+    - Tng2
+    - RHPm
+    - RHPl
+    - RHPp
+    - LFPm
+    - LFPl
+    - LFPp
+    - spoutB
+    - spoutT
+
+keypoints:
+  RFPf1: d4_tip_{side}
+  RFPf2: d3_tip_{side}
+  RFPf3: d2_tip_{side}
+  RFPf4: d1_tip_{side}
+
+sessions:
+  20200820-143216-cam1: right
+  20200820-143216-cam2: right
+  20200825-172621-cam1: right
+  20200825-172621-cam2: right
+  20200826-190946-cam1: right
+  20200826-190946-cam2: right
+  20200827-165448-cam1: right
+  20200827-165448-cam2: right
+  20201114-194453-cam1: right
+  20201114-194453-cam2: right
+  20201118-200343-cam1: right
+  20201118-200343-cam2: right
+  20210305-153347-cam1: right
+  20210305-153347-cam2: right
+  20210603-144652-cam1: right
+  20210603-144652-cam2: right
+  20220605-181830-cam1: right
+  20220605-181830-cam2: right
+  20220611-174551-cam1: right
+  20220611-174551-cam2: right
+  20220724-155702-cam1: right
+  20220724-155702-cam2: right
+  20220727-160417-cam1: right
+  20220727-160417-cam2: right

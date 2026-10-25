@@ -164,6 +164,7 @@ POST_PROCESS: dict[str, Callable[[pd.DataFrame, dict], pd.DataFrame]] = {
     "cazettes-side": _post_process_cazettes_side,
     "hantman-mv": _post_process_hantman_mv,
     "kaufman": _post_process_kaufman,
+    "kaufman-water": _post_process_kaufman,
     "tyssowski": _post_process_tyssowski,
 }
 
