@@ -47,6 +47,10 @@ that isn't worth re-deriving from scratch.
   [`skills/preprocess-new-dataset/SKILL.md`](skills/preprocess-new-dataset/SKILL.md)
   for the full list of decisions (new keypoints, laterality, multi-view merging,
   train/test split) that need a human call rather than an inferred default.
+- **`ALL_DATASETS` and tracked configs go together.** A dataset is in `ALL_DATASETS`
+  (`mighty_mouse/datasets.py`) if and only if its `configs/datasets/<name>.yaml` is tracked
+  in git. Experimental/undecided datasets stay out of the list and have their config
+  gitignored (see the bottom of `.gitignore`); do both together when promoting one.
 - **Don't hardcode values that drift.** The keypoint count, for example, changes as
   datasets are added — read `configs/model.yaml`'s `data.num_keypoints` fresh each
   time rather than writing a specific number into docs, comments, or code.

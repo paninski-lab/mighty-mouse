@@ -230,3 +230,4 @@ notebooks/play.ipynb
 configs/datasets/petersen-side.yaml
 configs/datasets/petersen-top.yaml
 configs/datasets/hantman.yaml
+configs/datasets/hou-tube.yaml
