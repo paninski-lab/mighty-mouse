@@ -1,6 +1,6 @@
 """Extract one CLS token per frame, for every video in the pretraining videos paths file.
 
-Outputs: <pretraining_embeddings_dir>/<model_type>/<dataset>/<video_stem>.npy
+Outputs: <pretraining_embeddings_dir>/<model_type>/<dataset>/<video_key>.npy
 (float16, shape (n_frames, hidden_size)). See skills/pretraining/extract-embeddings.
 
 Usage:
@@ -53,7 +53,7 @@ def main() -> None:
     n_existing = 0
     for v in videos:
         if not args.overwrite and output_path(
-            embeddings_dir, args.model_type, v.dataset, v.stem
+            embeddings_dir, args.model_type, v.dataset, v.key
         ).exists():
             n_existing += 1
         else:
@@ -69,18 +69,18 @@ def main() -> None:
 
     failed = []
     for i, v in enumerate(todo, 1):
-        print(f"[{i}/{len(todo)}] {v.dataset}/{v.stem}")
+        print(f"[{i}/{len(todo)}] {v.dataset}/{v.key}")
         try:
             emb = embed_video(
                 model, v.path, args.resolution, args.batch_size, n_frames=v.n_frames
             )
         except Exception:
             traceback.print_exc()
-            failed.append(f"{v.dataset}/{v.stem}")
+            failed.append(f"{v.dataset}/{v.key}")
             continue
         if v.n_frames is not None and len(emb) != v.n_frames:
             print(f"  WARNING: decoded {len(emb)} frames, videos paths file says {v.n_frames}")
-        out = output_path(embeddings_dir, args.model_type, v.dataset, v.stem)
+        out = output_path(embeddings_dir, args.model_type, v.dataset, v.key)
         out.parent.mkdir(parents=True, exist_ok=True)
         # write atomically so a killed run never leaves a truncated file that the
         # skip-existing check would trust

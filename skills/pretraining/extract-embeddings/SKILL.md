@@ -31,8 +31,9 @@ Flags: `--model_type` (default `dinov3_vits16`), `--batch_size`, `--resolution` 
 
 ## Output
 
-`<pretraining_embeddings_dir>/<model_type>/<dataset>/<video_stem>.npy` — float16, shape
-`(n_frames, hidden_size)`, frame-ordered.
+`<pretraining_embeddings_dir>/<model_type>/<dataset>/<video_key>.npy` — float16, shape
+`(n_frames, hidden_size)`, frame-ordered. `video_key` is the video's key in the videos paths
+file, not its file stem (e.g. every ibl video is named `_iblrig_leftCamera.raw.mp4`).
 
 ## Gotchas
 
@@ -44,5 +45,5 @@ Flags: `--model_type` (default `dinov3_vits16`), `--batch_size`, `--resolution` 
 - Frames are stretched to a square (no crop). A decoded-vs-expected frame count mismatch
   against the videos paths file prints a warning but still writes the file.
 - Videos that fail to decode are logged and skipped; the run continues and lists them at the end.
-- Duplicate video stems within one dataset are an error (they'd share an output file).
+- A key appearing in more than one split of a dataset is an error (they'd share an output file).
 - Needs `torch` and `transformers` (imported lazily; not in `pyproject.toml`/CI).

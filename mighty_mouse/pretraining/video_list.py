@@ -12,7 +12,7 @@ from pathlib import Path
 @dataclass(frozen=True)
 class VideoEntry:
     dataset: str
-    stem: str
+    key: str
     path: Path
     n_frames: int | None
 
@@ -23,6 +23,9 @@ def list_videos(
 ) -> tuple[list[VideoEntry], list[tuple[str, str]]]:
     """Flatten a videos paths dict into videos with a usable path.
 
+    Videos are identified by their key in the file, not their file stem: stems aren't
+    unique (e.g. every ibl video is named `_iblrig_leftCamera.raw.mp4`).
+
     Args:
         videos_paths: parsed videos paths file
         dataset: if given, only list this dataset's videos
@@ -32,8 +35,8 @@ def list_videos(
         - `(dataset, video key)` of entries skipped because their path is null
 
     Raises:
-        ValueError: if `dataset` isn't in the file, or two videos in one dataset share a
-            file stem (they would write to the same output file)
+        ValueError: if `dataset` isn't in the file, or a key appears in more than one
+            split of a dataset (they would write to the same output file)
     """
     if dataset is not None and dataset not in videos_paths:
         raise ValueError(f"unknown dataset {dataset!r}; choices: {sorted(videos_paths)}")
@@ -42,17 +45,14 @@ def list_videos(
     for name, splits in videos_paths.items():
         if dataset is not None and name != dataset:
             continue
-        seen = {}
+        seen = set()
         for videos_in_split in splits.values():
             for key, info in (videos_in_split or {}).items():
                 if not info.get("path"):
                     skipped.append((name, key))
                     continue
-                path = Path(info["path"])
-                if path.stem in seen:
-                    raise ValueError(
-                        f"{name}: videos {seen[path.stem]} and {path} share stem {path.stem!r}"
-                    )
-                seen[path.stem] = path
-                videos.append(VideoEntry(name, path.stem, path, info.get("frames")))
+                if key in seen:
+                    raise ValueError(f"{name}: video key {key!r} appears in more than one split")
+                seen.add(key)
+                videos.append(VideoEntry(name, key, Path(info["path"]), info.get("frames")))
     return videos, skipped

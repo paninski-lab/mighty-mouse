@@ -24,9 +24,10 @@ IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 
-def output_path(embeddings_dir: Path, model_type: str, dataset: str, stem: str) -> Path:
-    """`<embeddings_dir>/<model_type>/<dataset>/<stem>.npy`"""
-    return Path(embeddings_dir) / model_type / dataset / f"{stem}.npy"
+def output_path(embeddings_dir: Path, model_type: str, dataset: str, key: str) -> Path:
+    """`<embeddings_dir>/<model_type>/<dataset>/<key>.npy`, `key` being the video's key in
+    the videos paths file."""
+    return Path(embeddings_dir) / model_type / dataset / f"{key}.npy"
 
 
 def preprocess_frames(frames: np.ndarray, resolution: int) -> np.ndarray:

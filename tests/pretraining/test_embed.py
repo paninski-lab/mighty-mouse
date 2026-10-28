@@ -12,8 +12,8 @@ class TestOutputPath:
     """Test the function output_path."""
 
     def test_output_path_layout(self):
-        p = output_path(Path("/e"), "dinov3_vits16", "ibl", "vid")
-        assert p == Path("/e/dinov3_vits16/ibl/vid.npy")
+        p = output_path(Path("/e"), "dinov3_vits16", "ibl", "vid-key")
+        assert p == Path("/e/dinov3_vits16/ibl/vid-key.npy")
 
 
 class TestPreprocessFrames:
