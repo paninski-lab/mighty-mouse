@@ -285,7 +285,8 @@ mighty-mouse/
       video_list.py             flatten the pretraining videos paths file into videos to process
       embed.py                  frame decoding + frozen-ViT CLS extraction
       kmeans.py                 chunked spherical k-means on GPU
-      dedup.py                  stage-1 selection: one random frame per k-means cluster, per video
+      hierarchical.py           two-level k-means + balanced sampling (used by dedup.py for long videos)
+      dedup.py                  stage-1 selection: flat or two-level k-means, one random frame per cluster, per video
 
   tests/                        pytest suite; mirrors mighty_mouse/ (mighty_mouse/a/b.py ->
                                  tests/a/test_b.py). Run: python -m pytest tests

@@ -144,3 +144,26 @@ def spherical_kmeans(
     if not converged:
         assign, _ = assign_to_centroids(x, centroids, chunk)
     return centroids, assign, n_run
+
+
+def random_member_per_cluster(assign, k: int, seed: int):
+    """One random row from every non-empty cluster.
+
+    Each row gets a unique random rank and the highest-ranked row of each cluster wins,
+    so exactly one row per non-empty cluster is returned.
+
+    Args:
+        assign: int64 cluster index per row, shape (n,)
+        k: number of clusters (upper bound on the values in `assign` + 1)
+        seed: seed for the ranks
+
+    Returns:
+        int64 row indices in ascending order, one per non-empty cluster
+    """
+    import torch
+
+    generator = torch.Generator(device=assign.device).manual_seed(seed)
+    rank = torch.randperm(len(assign), generator=generator, device=assign.device)
+    top = torch.full((k,), -1, dtype=torch.int64, device=assign.device)
+    top.scatter_reduce_(0, assign, rank, reduce="amax")
+    return (rank == top[assign]).nonzero().squeeze(1)

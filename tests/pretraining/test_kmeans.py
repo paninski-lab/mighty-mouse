@@ -8,6 +8,7 @@ torch = pytest.importorskip("torch")
 from mighty_mouse.pretraining.kmeans import (  # noqa: E402
     assign_to_centroids,
     normalize_rows,
+    random_member_per_cluster,
     spherical_kmeans,
 )
 
@@ -83,3 +84,19 @@ class TestSphericalKmeans:
     def test_spherical_kmeans_bad_init_raises(self, blobs):
         with pytest.raises(ValueError, match="unknown init"):
             spherical_kmeans(blobs[0], 3, init="nope")
+
+
+class TestRandomMemberPerCluster:
+    """Test the function random_member_per_cluster."""
+
+    def test_random_member_per_cluster_one_per_nonempty_cluster(self):
+        assign = torch.tensor([0, 0, 2, 2, 2, 3, 0, 3])      # cluster 1 is empty
+        picked = random_member_per_cluster(assign, 4, seed=0)
+        assert sorted(assign[picked].tolist()) == [0, 2, 3]
+        assert picked.tolist() == sorted(picked.tolist())
+
+    def test_random_member_per_cluster_deterministic(self):
+        assign = torch.randint(0, 10, (200,), generator=torch.Generator().manual_seed(0))
+        a = random_member_per_cluster(assign, 10, seed=3)
+        b = random_member_per_cluster(assign, 10, seed=3)
+        assert torch.equal(a, b)
