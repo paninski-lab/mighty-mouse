@@ -236,6 +236,7 @@ modified DataFrame.
 mighty-mouse/
   AGENTS.md                     onboarding for coding agents
   skills/<name>/SKILL.md        step-by-step workflows (onboarding, versioning, standalone training, ...)
+  skills/pretraining/<name>/SKILL.md   workflows for the backbone-pretraining data pipeline
   docs/                         design notes for build_dataset / train_sweep
   configs/
     keypoints.yaml              canonical keypoint vocabulary
@@ -254,6 +255,8 @@ mighty-mouse/
     transfer_pseudo_labels.py   write model predictions into one raw dataset's label CSVs (see skills/transfer-pseudo-labels)
     ensemble_pseudo_labels.py   overwrite a raw dataset's labels with a confidence-thresholded mean of several models (see skills/transfer-pseudo-labels)
     active_labeling.py          label new keypoints by iterating hand-labeling and ensemble-disagreement frame selection (see skills/active-pseudo-labeling)
+    pretraining/
+      extract_embeddings.py     per-frame CLS embeddings for every pretraining video (see skills/pretraining/extract-embeddings)
     preprocessing/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
       extract_clips.py          cut short high-motion clips from raw videos for review
@@ -276,6 +279,9 @@ mighty-mouse/
       active_labeling.py        ensemble-disagreement frame selection, stats, merge-back (CLI: scripts/active_labeling.py)
     plots/
       plot_keypoints.py         keypoint overlay visualization
+    pretraining/
+      video_list.py             flatten the pretraining videos paths file into videos to process
+      embed.py                  frame decoding + frozen-ViT CLS extraction
 
   tests/                        pytest suite; mirrors mighty_mouse/ (mighty_mouse/a/b.py ->
                                  tests/a/test_b.py). Run: python -m pytest tests
