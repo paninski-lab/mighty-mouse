@@ -21,22 +21,14 @@ the data itself lives in sibling directories of the parent `poseinterface/` chec
 
 ## Where things live
 
-Full directory layout: see [`README.md`](README.md#directory-layout). Workflows
-you'll hit often have their own docs under `skills/<name>/SKILL.md` (plain markdown with a
-short `name`/`description` frontmatter — readable by any agent, not just Claude):
-
-- **Onboarding a new raw dataset** → [`skills/preprocess-new-dataset/SKILL.md`](skills/preprocess-new-dataset/SKILL.md)
-- **Adding new (empty) keypoints to an existing raw dataset for labeling** → [`skills/add-keypoints-to-raw-dataset/SKILL.md`](skills/add-keypoints-to-raw-dataset/SKILL.md)
-- **Versioning a dataset's label CSVs** → [`skills/bump-dataset-version/SKILL.md`](skills/bump-dataset-version/SKILL.md)
-- **Training a standalone LP model on one raw dataset** → [`skills/train-lightning-pose-model/SKILL.md`](skills/train-lightning-pose-model/SKILL.md)
-- **Pseudo-labeling a raw dataset (from another dataset's model, an ensemble of models, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
-- **Labeling new keypoints by iterating label → train ensemble → add highest-disagreement frames** → [`skills/active-pseudo-labeling/SKILL.md`](skills/active-pseudo-labeling/SKILL.md)
-- **Extracting per-frame CLS embeddings from the pretraining videos (MAE pretraining data pipeline)** → [`skills/pretraining/extract-embeddings/SKILL.md`](skills/pretraining/extract-embeddings/SKILL.md)
-- **Stage-1 per-video dedup of those embeddings (k-means, one frame per cluster) toward the ~1M-frame pretraining set** → [`skills/pretraining/dedup-videos/SKILL.md`](skills/pretraining/dedup-videos/SKILL.md)
-
-Read the relevant one before starting the task — they have hard-won detail (what
-to ask before converting a dataset, why a version bump can refuse as a no-op, etc.)
-that isn't worth re-deriving from scratch.
+Full directory layout: see [`README.md`](README.md#directory-layout). Workflows you'll hit
+often have their own docs under `skills/**/SKILL.md` (plain markdown with a short
+`name`/`description` frontmatter — readable by any agent, not just Claude). Each
+`description:` says when to use it; list them with `ls skills/*/SKILL.md skills/*/*/SKILL.md`
+(skills can be grouped in subdirectories, e.g. `skills/pretraining/`) and read the relevant
+one before starting the task — they have hard-won detail (what to ask before converting a
+dataset, why a version bump can refuse as a no-op, etc.) that isn't worth re-deriving from
+scratch.
 
 ## Rules for working in this repo
 
