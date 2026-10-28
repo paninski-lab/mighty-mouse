@@ -118,7 +118,7 @@ def embed_video(
                 device_type=device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"
             ):
                 cls = model(pixel_values=x).last_hidden_state[:, 0]
-            out.append(cls.float().cpu().numpy().astype(np.float16))
+            out.append(cls.to(torch.float16).cpu().numpy())
             pbar.update(len(frames))
     if not out:
         raise OSError(f"No frames decoded from {video_file}")
