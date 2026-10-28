@@ -34,6 +34,7 @@ Flags: `--model_type` (default `dinov3_vits16`), `--batch_size`, `--resolution` 
 `<pretraining_embeddings_dir>/<model_type>/<dataset>/<video_key>.npy` — float16, shape
 `(n_frames, hidden_size)`, frame-ordered. `video_key` is the video's key in the videos paths
 file, not its file stem (e.g. every ibl video is named `_iblrig_leftCamera.raw.mp4`).
+The model runs under bf16 autocast on CUDA; the CLS tokens are cast to float16 for storage.
 
 ## Gotchas
 
