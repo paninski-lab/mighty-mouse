@@ -29,6 +29,11 @@ class TestListVideos:
         assert videos[0].n_frames == 10
         assert skipped == [("a", "v2")]
 
+    def test_list_videos_splits_filter(self, videos_paths):
+        videos, skipped = list_videos(videos_paths, splits=("train",))
+        assert [(v.key, v.split) for v in videos] == [("v1", "train"), ("w1", "train")]
+        assert skipped == [("a", "v2")]
+
     def test_list_videos_single_dataset(self, videos_paths):
         videos, skipped = list_videos(videos_paths, dataset="b")
         assert [v.key for v in videos] == ["w1"]

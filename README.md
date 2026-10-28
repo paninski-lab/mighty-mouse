@@ -257,6 +257,7 @@ mighty-mouse/
     active_labeling.py          label new keypoints by iterating hand-labeling and ensemble-disagreement frame selection (see skills/active-pseudo-labeling)
     pretraining/
       extract_embeddings.py     per-frame CLS embeddings for every pretraining video (see skills/pretraining/extract-embeddings)
+      dedup_videos.py           stage-1 per-video dedup of those embeddings (see skills/pretraining/dedup-videos)
     preprocessing/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
       extract_clips.py          cut short high-motion clips from raw videos for review
@@ -280,8 +281,11 @@ mighty-mouse/
     plots/
       plot_keypoints.py         keypoint overlay visualization
     pretraining/
+      paths.py                  fixed layout of the `pretraining` dir (paths.yaml's only pretraining entry)
       video_list.py             flatten the pretraining videos paths file into videos to process
       embed.py                  frame decoding + frozen-ViT CLS extraction
+      kmeans.py                 chunked spherical k-means on GPU
+      dedup.py                  stage-1 selection: one random frame per k-means cluster, per video
 
   tests/                        pytest suite; mirrors mighty_mouse/ (mighty_mouse/a/b.py ->
                                  tests/a/test_b.py). Run: python -m pytest tests

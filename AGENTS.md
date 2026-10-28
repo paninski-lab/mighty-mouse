@@ -32,6 +32,7 @@ short `name`/`description` frontmatter — readable by any agent, not just Claud
 - **Pseudo-labeling a raw dataset (from another dataset's model, an ensemble of models, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
 - **Labeling new keypoints by iterating label → train ensemble → add highest-disagreement frames** → [`skills/active-pseudo-labeling/SKILL.md`](skills/active-pseudo-labeling/SKILL.md)
 - **Extracting per-frame CLS embeddings from the pretraining videos (MAE pretraining data pipeline)** → [`skills/pretraining/extract-embeddings/SKILL.md`](skills/pretraining/extract-embeddings/SKILL.md)
+- **Stage-1 per-video dedup of those embeddings (k-means, one frame per cluster) toward the ~1M-frame pretraining set** → [`skills/pretraining/dedup-videos/SKILL.md`](skills/pretraining/dedup-videos/SKILL.md)
 
 Read the relevant one before starting the task — they have hard-won detail (what
 to ask before converting a dataset, why a version bump can refuse as a no-op, etc.)
