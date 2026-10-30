@@ -30,10 +30,13 @@ videos (cheese-3d), hence the size threshold (`--two_level_min_frames`; the 100k
 provisional, untested between 72k and 356k frames). Rapid-motion stretches are not thinned
 beforehand, so every frame competes for a cluster.
 
-`SKIP_FIRST_FRAMES` (`mighty_mouse/pretrain/dedup.py`) lists leading frames to ignore per
-dataset: the aind-vbn videos start with an encoder-info placeholder frame, which k-means would
-otherwise keep as a one-frame cluster. Skipped frames are never selected and aren't counted in
-the stats. Check frame 0 of any new dataset's videos before trusting it.
+`SKIP_FIRST_FRAMES` and `SKIP_FIRST_SECONDS` (`mighty_mouse/pretrain/dedup.py`) list leading
+frames to ignore per dataset: the aind-vbn videos start with an encoder-info placeholder frame,
+which k-means would otherwise keep as a one-frame cluster, and the first stretch of the scara
+and costa-peterka videos is skipped by duration. Seconds are converted to frames per video from
+its own frame rate (costa-peterka mixes 30 and 60 fps), read from the video file. Skipped frames
+are never selected and aren't counted in the stats. Check the start of any new dataset's
+videos before trusting it.
 
 ## Run
 

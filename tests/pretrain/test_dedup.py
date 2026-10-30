@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pytest
 
@@ -12,7 +13,9 @@ from mighty_mouse.pretrain.dedup import (
     save_selection,
     seed_from_key,
     select_frames,
+    skip_first_frames,
     stored_method,
+    video_fps,
 )
 
 torch = pytest.importorskip("torch")
@@ -61,6 +64,41 @@ class TestChooseMethod:
     def test_choose_method_unknown_raises(self):
         with pytest.raises(ValueError, match="unknown method"):
             choose_method(10, method="nope")
+
+
+class TestSkipFirstFrames:
+    """Test the function skip_first_frames."""
+
+    def test_skip_first_frames_dataset_without_skip(self):
+        assert skip_first_frames("hantman") == 0
+
+    def test_skip_first_frames_frames_entry(self):
+        assert skip_first_frames("aind-vbn-body") == 1
+
+    def test_skip_first_frames_seconds_entry_scales_with_fps(self):
+        assert skip_first_frames("scara", fps=30.0) == 1800
+        assert skip_first_frames("costa-peterka", fps=30.0) == 1050
+        assert skip_first_frames("costa-peterka", fps=60.0) == 2100
+
+    def test_skip_first_frames_seconds_entry_without_fps_raises(self):
+        with pytest.raises(ValueError, match="fps"):
+            skip_first_frames("scara")
+
+
+class TestVideoFps:
+    """Test the function video_fps."""
+
+    def test_video_fps_reads_frame_rate(self, tmp_path: Path):
+        path = tmp_path / "v.mp4"
+        writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 25.0, (32, 32))
+        for _ in range(5):
+            writer.write(np.zeros((32, 32, 3), dtype=np.uint8))
+        writer.release()
+        assert video_fps(path) == pytest.approx(25.0)
+
+    def test_video_fps_missing_file_raises(self, tmp_path: Path):
+        with pytest.raises(OSError):
+            video_fps(tmp_path / "missing.mp4")
 
 
 class TestStoredMethod:
