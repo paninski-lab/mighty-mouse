@@ -1,6 +1,6 @@
 """Extract one CLS token per frame, for every video in the pretraining videos paths file.
 
-Outputs: <pretraining_embeddings_dir>/<model_type>/<dataset>/<video_key>.npy
+Outputs: <pretraining>/embeddings/<model_type>/<dataset>/<video_key>.npy
 (float16, shape (n_frames, hidden_size)). See skills/pretraining/extract-embeddings.
 
 Usage:
@@ -10,7 +10,6 @@ Usage:
 import argparse
 import os
 import traceback
-from pathlib import Path
 
 import numpy as np
 import yaml
@@ -24,6 +23,7 @@ from mighty_mouse.pretraining.embed import (
     load_cls_embedder,
     output_path,
 )
+from mighty_mouse.pretraining.paths import embeddings_dir, pretraining_dir, videos_paths_file
 from mighty_mouse.pretraining.video_list import list_videos
 
 
@@ -42,9 +42,9 @@ def main() -> None:
     parser.add_argument("--device", default=None, help="default: cuda if available, else cpu")
     args = parser.parse_args()
 
-    paths = load_paths()
-    videos_paths = yaml.safe_load(Path(paths["pretraining_videos_paths_file"]).read_text())
-    embeddings_dir = Path(paths["pretraining_embeddings_dir"])
+    root = pretraining_dir(load_paths())
+    videos_paths = yaml.safe_load(videos_paths_file(root).read_text())
+    out_dir = embeddings_dir(root)
 
     videos, null_path = list_videos(videos_paths, args.dataset)
     print(f"{len(videos)} videos with paths; {len(null_path)} skipped (null path)")
@@ -53,7 +53,7 @@ def main() -> None:
     n_existing = 0
     for v in videos:
         if not args.overwrite and output_path(
-            embeddings_dir, args.model_type, v.dataset, v.key
+            out_dir, args.model_type, v.dataset, v.key
         ).exists():
             n_existing += 1
         else:
@@ -80,7 +80,7 @@ def main() -> None:
             continue
         if v.n_frames is not None and len(emb) != v.n_frames:
             print(f"  WARNING: decoded {len(emb)} frames, videos paths file says {v.n_frames}")
-        out = output_path(embeddings_dir, args.model_type, v.dataset, v.key)
+        out = output_path(out_dir, args.model_type, v.dataset, v.key)
         out.parent.mkdir(parents=True, exist_ok=True)
         # write atomically so a killed run never leaves a truncated file that the
         # skip-existing check would trust

@@ -1,6 +1,6 @@
 ---
 name: extract-embeddings
-description: Use when the user wants to extract per-frame CLS-token embeddings (e.g. DINOv3 ViT-S) from the pretraining video collection, for all datasets or one — outputs one .npy per video under pretraining_embeddings_dir.
+description: Use when the user wants to extract per-frame CLS-token embeddings (e.g. DINOv3 ViT-S) from the pretraining video collection, for all datasets or one — outputs one .npy per video under `<pretraining>/embeddings`.
 ---
 
 # Extracting per-frame CLS embeddings from pretraining videos
@@ -11,9 +11,8 @@ token per frame.
 
 ## Two different `paths.yaml` files
 
-- **Repo `paths.yaml`** (machine-specific, gitignored) — gains two keys for this pipeline:
-  - `pretraining_videos_paths_file`: path to the videos paths file below
-  - `pretraining_embeddings_dir`: root for outputs
+- **Repo `paths.yaml`** (machine-specific, gitignored) — gains one key for this pipeline:
+  - `pretraining`: the pretraining data directory (e.g. `poseinterface/videos`); everything below is at a fixed place inside it
 - **Videos paths file** (`poseinterface/videos/paths.yaml`, built by `videos/code/`) —
   nested `dataset -> split (train/test/unlabeled) -> video key -> {path, dims, frames}`.
   Entries with `path: null` aren't filled in yet and are skipped (counted in the output).
@@ -31,7 +30,7 @@ Flags: `--model_type` (default `dinov3_vits16`), `--batch_size`, `--resolution` 
 
 ## Output
 
-`<pretraining_embeddings_dir>/<model_type>/<dataset>/<video_key>.npy` — float16, shape
+`<pretraining>/embeddings/<model_type>/<dataset>/<video_key>.npy` — float16, shape
 `(n_frames, hidden_size)`, frame-ordered. `video_key` is the video's key in the videos paths
 file, not its file stem (e.g. every ibl video is named `_iblrig_leftCamera.raw.mp4`).
 The model runs under bf16 autocast on CUDA; the CLS tokens are cast to float16 for storage.
@@ -47,4 +46,5 @@ The model runs under bf16 autocast on CUDA; the CLS tokens are cast to float16 f
   against the videos paths file prints a warning but still writes the file.
 - Videos that fail to decode are logged and skipped; the run continues and lists them at the end.
 - A key appearing in more than one split of a dataset is an error (they'd share an output file).
+- Test-split videos are embedded too (wasted compute, harmless): the dedup step filters them out.
 - Needs `torch` and `transformers` (imported lazily; not in `pyproject.toml`/CI).
