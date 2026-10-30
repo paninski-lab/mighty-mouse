@@ -1,0 +1,214 @@
+data:
+  image_resize_dims:
+    height: 256
+    width: 256
+  data_dir: /media/mattw/poseinterface/data/head-fixed
+  video_dir: ${data.data_dir}/videos
+  csv_file: CollectedData.csv
+  # Dataset of each training frame, by the <dataset> component of its labeled-data/<dataset>/
+  # path (null = stock single-corpus behavior). mighty_mouse/train.py fills it from ALL_DATASETS
+  # for the temperature sampler and imgaug_per_dataset_zoom below.
+  dataset_names: null
+  num_keypoints: 44
+  keypoint_names:
+  # ── eye ───────────────────────────────────────────────────────────────────
+  - eye_back_left
+  - eye_back_right
+  - eye_bottom_left
+  - eye_bottom_right
+  - eye_front_left
+  - eye_front_right
+  - eye_top_left
+  - eye_top_right
+  - pupil_center_left
+  - pupil_center_right
+  # ── nose / mouth (lateralized) ────────────────────────────────────────────
+  - upperlip_right
+  - upperlip_left
+  - tongue_end_right
+  - tongue_end_left
+  # ── nose / mouth (midline) ────────────────────────────────────────────────
+  - nose_tip
+  - nose_top
+  - nose_bottom
+  - pad_center
+  - mouth
+  - lowerlip
+  - tongue_tip
+  - tongue_center
+  # ── whiskers ──────────────────────────────────────────────────────────────
+  - pad_top_left
+  - pad_top_right
+  - pad_side_left
+  - pad_side_right
+  # ── ears ──────────────────────────────────────────────────────────────────
+  - ear_top_left
+  - ear_top_right
+  - ear_tip_left
+  - ear_tip_right
+  - ear_bottom_left
+  - ear_bottom_right
+  - ear_base_left
+  - ear_base_right
+  # ── paw ───────────────────────────────────────────────────────────────────
+  - wrist_left
+  - wrist_right
+  - d1_tip_left
+  - d1_tip_right
+  - d2_tip_left
+  - d2_tip_right
+  - d3_tip_left
+  - d3_tip_right
+  - d4_tip_left
+  - d4_tip_right
+  columns_for_singleview_pca: null
+
+training:
+  imgaug:
+    Rotate:
+      p: 0.4
+      kwargs:
+        rotate: [-25, 25]
+    MotionBlur:
+      p: 0.5
+      kwargs:
+        k: 5
+        angle: [-90, 90]
+    CoarseDropout:
+      p: 0.5
+      kwargs:
+        p: 0.02
+        size_percent: 0.3
+        per_channel: 0.5
+    CoarseSalt:
+      p: 0.5
+      kwargs:
+        p: 0.01
+        size_percent: [0.05, 0.1]
+    CoarsePepper:
+      p: 0.5
+      kwargs:
+        p: 0.01
+        size_percent: [0.05, 0.1]
+    ElasticTransformation:
+      p: 0.5
+      kwargs:
+        alpha: [0, 10]
+        sigma: 5
+    AllChannelsHistogramEqualization:
+      p: 0.1
+    AllChannelsCLAHE:
+      p: 0.1
+    Emboss:
+      p: 0.1
+      kwargs:
+        alpha: [0, 0.5]
+        strength: [0.5, 1.5]
+    CropAndPad:
+      p: 0.4
+      kwargs:
+        percent: [-0.15, 0.15]
+        keep_size: true
+  # Per-dataset zoom in AND out: [lower, upper] CropAndPad percent for each dataset, replacing
+  # the CropAndPad entry above (whose p and keep_size it keeps; unlisted datasets use that entry).
+  # Shrink factor ~ 1 + 2p. Upper bounds zoom each source out roughly to the corpus's smallest
+  # apparent scale (ibl): eye-width medians put facemap ~4-6x above ibl, cheese lateral ~2.5-3x,
+  # kondo ~2x, cazettes ~1.5x. Negative lower bounds crop (enlarge, factor 1/(1+2p): ibl -0.4 ->
+  # 5x, cazettes -0.375 -> 4x, kondo -0.33 -> 3x, cheese -0.25 -> 2x), so every source also
+  # reaches the corpus's largest apparent scale (facemap, whose eye is ~3-5x ibl's). Keypoints
+  # pushed out of the frame become NaN (unlabeled). Needs data.dataset_names (set by
+  # mighty_mouse/train.py) and lightning-pose branch post_sub_lp_delta
+  # (paninski-lab/lightning-pose); stock lightning-pose ignores this key.
+  imgaug_per_dataset_zoom:
+    facemap: [-0.15, 2.0]
+    cheese-2d: [-0.25, 1.0]
+    kondo: [-0.33, 0.5]
+    cazettes-side: [-0.375, 0.25]
+    ibl: [-0.4, 0.15]
+    hantman-mv: [-0.4, 0.15]   # same apparent scale as ibl (eye->nose 23% of width)
+    cheese-3d: [-0.25, 1.0]    # same rig, cameras and 640x512 frames as cheese-2d
+    kaufman: [-0.4, 0.15]      # widest rig (eye->nose ~16% of 800 px width, below ibl 23%): ibl range
+    aind-vbn-body: [-0.4, 0.15]  # eye->nose 22.6% of 256 px crop, eye width 6.0%: ibl / hantman-mv scale
+    aind-vbn-face: [-0.4, 0.15]  # front view, no nose label: eye width 6.6% of 256 px (hantman-mv 6.8%)
+    cavelli: [-0.4, 0.15]        # pupil->nose 23-26% of width in both cameras (ibl 23%)
+    tyssowski: [-0.4, 0.15]      # hantman-mv rig size (448x290): fingertip spread 6.3% of width (hantman-mv 7.5%)
+    kaufman-water: [-0.4, 0.15]  # kaufman scale (800x600): tip->knuckle 2.8% / tip->palm 6.3% (kaufman 2.7 / 5.9%)
+  imgaug_hflip: true
+  train_batch_size: 32
+  val_batch_size: 64
+  test_batch_size: 64
+  train_prob: 0.95
+  val_prob: 0.05
+  train_frames: 1
+  # Multi-dataset sampling temperature over supervision mass (q_d ∝ (n_d·k̄_d)^(1/T) / k̄_d).
+  # null/1 = stock frame-proportional loader; "inf" = equal supervision per dataset. Set per
+  # run by scripts/train_sweep.py --sampling_temperatures (with data.dataset_names); needs
+  # lightning-pose branch post_sub_lp_delta.
+  sampling_temperature: null
+  num_gpus: 1
+  unfreezing_step: 1000
+  min_steps: 12000
+  max_steps: 12000
+  log_every_n_steps: 10
+  # Validation is step-based, not epoch-based: sampling_temperature changes epoch length
+  # (~306 batches at T=1 vs ~93 at T=inf), so an epoch-based cadence would validate ~3x
+  # more often at high temperature and confound the sampling axis. Lightning only counts
+  # val_check_interval in global steps when check_val_every_n_epoch is null — both keys
+  # are needed. 250 steps -> 48 validation points over a 12,000-step run.
+  check_val_every_n_epoch: null
+  val_check_interval: 250
+  rng_seed_data_pt: 0
+  rng_seed_model_pt: 0
+  optimizer: Adam
+  optimizer_params:
+    learning_rate: 1e-3
+  lr_scheduler: multisteplr
+  lr_scheduler_params:
+    multisteplr:
+      milestone_steps: [4000, 6000, 8000]
+      gamma: 0.5
+
+model:
+  losses_to_use: []
+  backbone: resnet50_animal_ap10k
+  model_type: heatmap
+  heatmap_loss_type: mse
+  model_name: test
+
+dali:
+  general:
+    seed: 123456
+  base:
+    train:
+      sequence_length: 32
+    predict:
+      sequence_length: 64
+  context:
+    train:
+      batch_size: 16
+    predict:
+      sequence_length: 64
+
+losses:
+  pca_singleview:
+    log_weight: 10.7
+    components_to_keep: 0.99
+    epsilon: null
+  temporal:
+    log_weight: 10.7
+    epsilon: 10.0
+    prob_threshold: 0.05
+
+eval:
+  predict_vids_after_training: false
+  save_vids_after_training: false
+  test_videos_directory: ${data.data_dir}/videos
+  confidence_thresh_for_vid: 0.90
+
+callbacks:
+  anneal_weight:
+    attr_name: total_unsupervised_importance
+    init_val: 0.0
+    increase_factor: 0.01
+    final_val: 1.0
+    freeze_until_epoch: 60

@@ -242,6 +242,8 @@ mighty-mouse/
   configs/
     keypoints.yaml              canonical keypoint vocabulary
     model.yaml                  LP model config; data_dir/csv_file overridden per-run by train_sweep*.py
+    model_zoominout.yaml        the Mighty Mouse recipe's config: model.yaml + augmentation, per-dataset
+                                 zoom, step-based validation (needs lightning-pose post_sub_lp_delta)
     datasets/
       <dataset>.yaml            per-dataset conversion config
 
@@ -250,6 +252,11 @@ mighty-mouse/
     build_dataset.py            subsampling + merging (run freely) (see docs/build_dataset.md)
     train_sweep.py              LP training sweep + evaluation, local/sequential (see docs/train_sweep.md)
     train_sweep_lightning.py    same sweep, Lightning AI/parallel (see docs/train_sweep.md, mighty_mouse/train.py)
+    train_plan.sh               Mighty Mouse recipe: all-data / dedicated / leave-one-out models, missing ones
+                                 trained (see skills/train-plan; needs lightning-pose post_sub_lp_delta)
+    zeroshot_predict.py         a leave-one-out trunk's predictions on the left-out dataset's train frames
+    eval_suite.py               test-set pixel-error tables of every trunk / dedicated model (see skills/eval-suite)
+    zeroshot_score.py           leave-one-out zero-shot scores, per keypoint (see skills/eval-suite)
     bump_version.py             snapshot a raw dataset's label CSVs as a new version (see skills/bump-dataset-version)
     corpus_summary.py           per-dataset frame/keypoint summary -> assets/corpus.{csv,md}; run automatically by bump_version.py
     add_keypoints.py            add empty keypoint columns to a raw dataset (see skills/add-keypoints-to-raw-dataset)
@@ -273,7 +280,8 @@ mighty-mouse/
     convert.py                  per-dataset conversion logic + POST_PROCESS hooks
                                  (CLI: scripts/convert_dataset.py)
     build.py                    per-dataset subsampling + merging (CLI: scripts/build_dataset.py)
-    datasets.py                 ALL_DATASETS (datasets in the combined corpus)
+    datasets.py                 ALL_DATASETS (datasets in the combined corpus); SHORT_NAMES / tag_of
+                                 (merged-CSV tags such as face+ibl+cheese)
     inventory.py                per-dataset keypoint masks (direct / trainable / eval) of the converted
                                  corpus -> <data_dir>/dataset_inventory.json + docs/dataset_inventory.md
                                  (`python -m mighty_mouse.inventory`)
@@ -282,6 +290,7 @@ mighty-mouse/
     train.py                    sweep combo/naming/command logic shared by both
                                  train_sweep*.py scripts; also a standalone CLI
                                  (`python -m mighty_mouse.train`) for evaluation only
+    comparison.py               pixel errors over labeled cells (visible == 2), pooled summaries
     labeling/
       ensemble.py               run an ensemble of LP models on a label CSV's images; confidence-thresholded mean
       active_labeling.py        ensemble-disagreement frame selection, stats, merge-back (CLI: scripts/active_labeling.py)

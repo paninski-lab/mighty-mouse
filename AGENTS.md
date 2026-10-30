@@ -29,6 +29,8 @@ short `name`/`description` frontmatter — readable by any agent, not just Claud
 - **Adding new (empty) keypoints to an existing raw dataset for labeling** → [`skills/add-keypoints-to-raw-dataset/SKILL.md`](skills/add-keypoints-to-raw-dataset/SKILL.md)
 - **Versioning a dataset's label CSVs** → [`skills/bump-dataset-version/SKILL.md`](skills/bump-dataset-version/SKILL.md)
 - **Training a standalone LP model on one raw dataset** → [`skills/train-lightning-pose-model/SKILL.md`](skills/train-lightning-pose-model/SKILL.md)
+- **Training the Mighty Mouse recipe on the combined corpus (all-data, dedicated and leave-one-out models)** → [`skills/train-plan/SKILL.md`](skills/train-plan/SKILL.md) (needs lightning-pose branch `post_sub_lp_delta`)
+- **Evaluating or comparing the trained models (test-set tables, leave-one-out zero-shot, transfer videos)** → [`skills/eval-suite/SKILL.md`](skills/eval-suite/SKILL.md)
 - **Pseudo-labeling a raw dataset (from another dataset's model, an ensemble of models, precomputed predictions, or its own hand-corrected rows)** → [`skills/transfer-pseudo-labels/SKILL.md`](skills/transfer-pseudo-labels/SKILL.md)
 - **Labeling new keypoints by iterating label → train ensemble → add highest-disagreement frames** → [`skills/active-pseudo-labeling/SKILL.md`](skills/active-pseudo-labeling/SKILL.md)
 - **Any overlay video or figure of predictions / labels** → [`skills/pose-video/SKILL.md`](skills/pose-video/SKILL.md) (its *House style* section: group palette, banner, header/footer, SD crosses + strip, file naming)
@@ -52,7 +54,8 @@ that isn't worth re-deriving from scratch.
 - **`ALL_DATASETS` and tracked configs go together.** A dataset is in `ALL_DATASETS`
   (`mighty_mouse/datasets.py`) if and only if its `configs/datasets/<name>.yaml` is tracked
   in git. Experimental/undecided datasets stay out of the list and have their config
-  gitignored (see the bottom of `.gitignore`); do both together when promoting one.
+  gitignored (see the bottom of `.gitignore`); do both together when promoting one, and give
+  it a short name at the end of `SHORT_NAMES` (merged-CSV tags).
 - **Don't hardcode values that drift.** The keypoint count, for example, changes as
   datasets are added — read `configs/model.yaml`'s `data.num_keypoints` fresh each
   time rather than writing a specific number into docs, comments, or code.

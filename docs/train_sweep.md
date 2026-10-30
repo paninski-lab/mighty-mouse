@@ -188,6 +188,34 @@ Note the triple-merge job here (`face+ibl+cheese`, 8427 frames) will take meanin
 step than the balanced `-600` conditions (max 1800 frames) — it's the same `min_steps`/`max_steps`
 in `configs/model.yaml`, just more data per epoch.
 
+## The Mighty Mouse recipe: sampling temperature, zoom, nonlinear head
+
+The multi-dataset recipe needs **lightning-pose branch `post_sub_lp_delta`**
+(`paninski-lab/lightning-pose`) in the environment that runs `litpose`. Stock lightning-pose reads
+none of the config keys below and would silently train without them, so `train_sweep.py` and
+`train_sweep_lightning.py` stop before training if a run uses one and the installed lightning-pose
+lacks the branch's classes (`mighty_mouse.train.check_lightning_pose`). Check with
+`git -C <lightning-pose clone> branch --show-current`; once the branch is merged into lightning-pose
+`main`, the check and this note can go.
+
+| option | what it does |
+|---|---|
+| `--sampling_temperatures "2"` | draws training frames per dataset by supervision mass^(1/T) instead of frame-proportionally (`1` or empty = stock; `inf` = equal per dataset); adds `sampling-T<T>/` to the output path |
+| `--config_file configs/model_zoominout.yaml` | stronger augmentation, per-dataset zoom in/out (`imgaug_per_dataset_zoom`), validation every 250 steps |
+| `--extra_overrides "+model.head_hidden_channels=256;+training.resume_every_n_steps=500"` | Hydra overrides for every run, not part of the output path: here the nonlinear head (ConvT -> 256 -> LayerNorm -> ReLU -> Conv1x1) and a rolling checkpoint every 500 steps |
+| `--skip_existing` | skips finished runs; a run with a rolling checkpoint (`resume/resume.ckpt`) continues where it stopped |
+| `--keep_checkpoints` | keeps the best checkpoint after evaluation (needed for zero-shot predictions or fine-tuning) |
+| `--output_root <dir>` | writes runs under another root, same layout |
+
+`scripts/train_plan.sh` builds these commands for the recipe's three stages (all-data trunk,
+dedicated per-dataset models, leave-one-out trunks), shows which runs exist and trains the missing
+ones; see [`skills/train-plan/SKILL.md`](../skills/train-plan/SKILL.md).
+
+Both sampling and zoom look up each training frame's dataset, so `mighty_mouse/train.py` passes
+`ALL_DATASETS` as `data.dataset_names` whenever a run uses either. Evaluation (`evaluate_model`)
+scores labeled cells only (`visible == 2`) and leaves the tongue and lip keypoints out
+(`mighty_mouse/comparison.py`); each `eval/<dataset>/` also gets a `comparison_metrics.json`.
+
 ## After training
 
 Freeze the run the same way `data/head-fixed_v2` was frozen — rename the scratch results directory
