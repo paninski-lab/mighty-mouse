@@ -18,7 +18,7 @@ keypoints:
   ear_base: ear_base_{side}
   # Raw fingertip names carry `_left`, but they are lateralized like the other bilateral
   # keypoints (all sessions are left-view); the far-side d*_tip_right columns are forced to
-  # visible=0 in POST_PROCESS (mighty_mouse/convert.py) since they were never labeled.
+  # visible=0 in POST_PROCESS (mighty_mouse/preprocess/convert.py) since they were never labeled.
   d1_tip_left: d1_tip_{side}
   d2_tip_left: d2_tip_{side}
   d3_tip_left: d3_tip_{side}

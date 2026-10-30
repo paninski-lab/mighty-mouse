@@ -6,7 +6,7 @@ data:
   video_dir: ${data.data_dir}/videos
   csv_file: CollectedData.csv
   # Dataset of each training frame, by the <dataset> component of its labeled-data/<dataset>/
-  # path (null = stock single-corpus behavior). mighty_mouse/train.py fills it from ALL_DATASETS
+  # path (null = stock single-corpus behavior). mighty_mouse/train/sweep.py fills it from ALL_DATASETS
   # for the temperature sampler and imgaug_per_dataset_zoom below.
   dataset_names: null
   num_keypoints: 44
@@ -117,7 +117,7 @@ training:
   # 5x, cazettes -0.375 -> 4x, kondo -0.33 -> 3x, cheese -0.25 -> 2x), so every source also
   # reaches the corpus's largest apparent scale (facemap, whose eye is ~3-5x ibl's). Keypoints
   # pushed out of the frame become NaN (unlabeled). Needs data.dataset_names (set by
-  # mighty_mouse/train.py) and lightning-pose branch post_sub_lp_delta
+  # mighty_mouse/train/sweep.py) and lightning-pose branch post_sub_lp_delta
   # (paninski-lab/lightning-pose); stock lightning-pose ignores this key.
   imgaug_per_dataset_zoom:
     facemap: [-0.15, 2.0]
@@ -142,7 +142,7 @@ training:
   train_frames: 1
   # Multi-dataset sampling temperature over supervision mass (q_d ∝ (n_d·k̄_d)^(1/T) / k̄_d).
   # null/1 = stock frame-proportional loader; "inf" = equal supervision per dataset. Set per
-  # run by scripts/train_sweep.py --sampling_temperatures (with data.dataset_names); needs
+  # run by scripts/train/train_sweep.py --sampling_temperatures (with data.dataset_names); needs
   # lightning-pose branch post_sub_lp_delta.
   sampling_temperature: null
   num_gpus: 1
