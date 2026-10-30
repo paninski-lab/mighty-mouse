@@ -1,5 +1,5 @@
 default_stages: [pre-commit]
-files: ^(mighty_mouse|tests|scripts)/
+files: ^(mighty_mouse|tests|scripts|\.claude/skills)/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -11,6 +11,7 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-symlinks
+        files: ^\.claude/skills/
       - id: check-yaml
       - id: check-toml
       - id: debug-statements
@@ -19,7 +20,6 @@ repos:
         args: [--fix=lf]
       - id: name-tests-test
         args: ["--pytest-test-first"]
-        exclude: ^tests/fetch_test_data\.py$
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit

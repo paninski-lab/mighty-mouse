@@ -225,7 +225,8 @@ __marimo__/
 
 notebooks/play.ipynb
 
-.claude/
+.claude/*
+!.claude/skills/
 
 configs/datasets/petersen-side.yaml
 configs/datasets/petersen-top.yaml
