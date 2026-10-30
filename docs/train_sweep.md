@@ -55,7 +55,7 @@ Always `--dry_run` first to preview the exact `litpose train` commands before co
 multi-hour run:
 
 ```bash
-python scripts/train_sweep.py --dry_run \
+python scripts/train/train_sweep.py --dry_run \
     --csv_files "CollectedData_facemap-600_train.csv;CollectedData_ibl-600_train.csv;CollectedData_cheese-2d-600_train.csv" \
     --train_frames "200;400;600" \
     --seeds "0;1;2" \
@@ -67,7 +67,7 @@ interrupted):
 
 ```bash
 # 1. Single-dataset baselines
-python scripts/train_sweep.py \
+python scripts/train/train_sweep.py \
     --csv_files "CollectedData_facemap-600_train.csv;CollectedData_ibl-600_train.csv;CollectedData_cheese-2d-600_train.csv" \
     --train_frames "200;400;600" \
     --seeds "0;1;2" \
@@ -75,7 +75,7 @@ python scripts/train_sweep.py \
     --skip_existing
 
 # 2. Pairwise merges
-python scripts/train_sweep.py \
+python scripts/train/train_sweep.py \
     --csv_files "CollectedData_face+cheese-600_train.csv;CollectedData_face+ibl-600_train.csv;CollectedData_cheese+ibl-600_train.csv" \
     --train_frames "400;600" \
     --seeds "0;1;2" \
@@ -83,7 +83,7 @@ python scripts/train_sweep.py \
     --skip_existing
 
 # 3. Triple merge
-python scripts/train_sweep.py \
+python scripts/train/train_sweep.py \
     --csv_files "CollectedData_face+ibl+cheese-600_train.csv" \
     --train_frames "600" \
     --seeds "0;1;2" \
@@ -108,7 +108,7 @@ tar -cf head-fixed_v2.tar -C data head-fixed_v2
 ```
 
 Each job extracts this archive into place itself if `data_dir` doesn't already exist when it starts
-(see `make_extract_command` in `mighty_mouse/train.py`) — safe to do independently in every job since
+(see `make_extract_command` in `mighty_mouse/train/sweep.py`) — safe to do independently in every job since
 each Lightning Job is an isolated snapshot of the Studio's filesystem, not a shared mount. `paths.yaml`
 also needs `results_dir` pointing at storage that outlives an individual job (e.g. a teamspace-mounted
 drive), since results need to survive after the job's compute is torn down — unlike `data_dir`, this
@@ -118,7 +118,7 @@ one *should* be shared/persistent across jobs.
 pip install -e ".[lightning]"
 
 # 1. Single-dataset baselines
-python scripts/train_sweep_lightning.py \
+python scripts/train/train_sweep_lightning.py \
     --csv_files "CollectedData_facemap-600_train.csv;CollectedData_ibl-600_train.csv;CollectedData_cheese-2d-600_train.csv" \
     --train_frames "200;400;600" \
     --seeds "0;1;2" \
@@ -127,7 +127,7 @@ python scripts/train_sweep_lightning.py \
     --skip_existing
 
 # 2. Pairwise merges
-python scripts/train_sweep_lightning.py \
+python scripts/train/train_sweep_lightning.py \
     --csv_files "CollectedData_face+cheese-600_train.csv;CollectedData_face+ibl-600_train.csv;CollectedData_cheese+ibl-600_train.csv" \
     --train_frames "400;600" \
     --seeds "0;1;2" \
@@ -136,7 +136,7 @@ python scripts/train_sweep_lightning.py \
     --skip_existing
 
 # 3. Triple merge
-python scripts/train_sweep_lightning.py \
+python scripts/train/train_sweep_lightning.py \
     --csv_files "CollectedData_face+ibl+cheese-600_train.csv" \
     --train_frames "600" \
     --seeds "0;1;2" \
@@ -160,14 +160,14 @@ why 200/400/600 doesn't apply here. 21 jobs (7 tags × 3 seeds) at one `train_fr
 
 ```bash
 # dry run first
-python scripts/train_sweep.py --dry_run \
+python scripts/train/train_sweep.py --dry_run \
     --csv_files "CollectedData_facemap_train.csv;CollectedData_ibl_train.csv;CollectedData_cheese-2d_train.csv;CollectedData_face+cheese_train.csv;CollectedData_face+ibl_train.csv;CollectedData_cheese+ibl_train.csv;CollectedData_face+ibl+cheese_train.csv" \
     --train_frames "1" \
     --seeds "0;1;2" \
     --backbones "vits_dino"
 
 # local, sequential
-python scripts/train_sweep.py \
+python scripts/train/train_sweep.py \
     --csv_files "CollectedData_facemap_train.csv;CollectedData_ibl_train.csv;CollectedData_cheese-2d_train.csv;CollectedData_face+cheese_train.csv;CollectedData_face+ibl_train.csv;CollectedData_cheese+ibl_train.csv;CollectedData_face+ibl+cheese_train.csv" \
     --train_frames "1" \
     --seeds "0;1;2" \
@@ -175,7 +175,7 @@ python scripts/train_sweep.py \
     --skip_existing
 
 # Lightning AI, parallel
-python scripts/train_sweep_lightning.py \
+python scripts/train/train_sweep_lightning.py \
     --csv_files "CollectedData_facemap_train.csv;CollectedData_ibl_train.csv;CollectedData_cheese-2d_train.csv;CollectedData_face+cheese_train.csv;CollectedData_face+ibl_train.csv;CollectedData_cheese+ibl_train.csv;CollectedData_face+ibl+cheese_train.csv" \
     --train_frames "1" \
     --seeds "0;1;2" \
@@ -207,14 +207,14 @@ lacks the branch's classes (`mighty_mouse.train.check_lightning_pose`). Check wi
 | `--keep_checkpoints` | keeps the best checkpoint after evaluation (needed for zero-shot predictions or fine-tuning) |
 | `--output_root <dir>` | writes runs under another root, same layout |
 
-`scripts/train_plan.sh` builds these commands for the recipe's three stages (all-data trunk,
+`scripts/train/train_plan.sh` builds these commands for the recipe's three stages (all-data trunk,
 dedicated per-dataset models, leave-one-out trunks), shows which runs exist and trains the missing
-ones; see [`skills/train-plan/SKILL.md`](../skills/train-plan/SKILL.md).
+ones; see [`skills/train/train-plan/SKILL.md`](../skills/train/train-plan/SKILL.md).
 
-Both sampling and zoom look up each training frame's dataset, so `mighty_mouse/train.py` passes
+Both sampling and zoom look up each training frame's dataset, so `mighty_mouse/train/sweep.py` passes
 `ALL_DATASETS` as `data.dataset_names` whenever a run uses either. Evaluation (`evaluate_model`)
 scores labeled cells only (`visible == 2`) and leaves the tongue and lip keypoints out
-(`mighty_mouse/comparison.py`); each `eval/<dataset>/` also gets a `comparison_metrics.json`.
+(`mighty_mouse/evaluation/comparison.py`); each `eval/<dataset>/` also gets a `comparison_metrics.json`.
 
 ## After training
 

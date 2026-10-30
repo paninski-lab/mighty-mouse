@@ -1,6 +1,6 @@
 """
-Camera view of a labeled frame, from its session directory name. Shared by the renderers in
-`scripts/qualitative/`, which draw one panel (or column) per view and sample frames per view.
+Camera view of a labeled frame, from its session directory name. Renderers draw one panel (or
+column) per view and sample frames per view.
 Session names are the same in a raw dataset and in the converted corpus.
 """
 

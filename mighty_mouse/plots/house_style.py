@@ -1,7 +1,7 @@
 """
 House style for overlay videos (skill `pose-video`, section "House style"): the standing keypoint-
-group palette, text helpers, the square letterboxed panel and the h264 encode every renderer in
-`scripts/qualitative/` shares. Colours are BGR (cv2).
+group palette, text helpers, the square letterboxed panel and the h264 encode every overlay-video
+renderer shares. Colours are BGR (cv2).
 """
 
 import subprocess

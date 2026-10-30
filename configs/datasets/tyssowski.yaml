@@ -1,6 +1,6 @@
 # `mouth` is kept in the raw CSVs (for labeling) but excluded from the corpus. Source
 # keypoints not listed here (thumb d1, d{2-5}_{1,2}, wrist, elbow, shoulder, pellet)
-# were dropped from the CSVs by scripts/preprocessing/tyssowski/convert_tyssowski.py, so
+# were dropped from the CSVs by scripts/preprocess/tyssowski/convert_tyssowski.py, so
 # they need no exclude entry. Source digit numbering is reversed (and offset) relative to
 # the canonical ones: d5 is the canonical d1, ..., d2 is the canonical d4; _3 is the tip.
 # The thumb has no canonical home.

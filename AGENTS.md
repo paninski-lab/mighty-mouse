@@ -24,8 +24,8 @@ the data itself lives in sibling directories of the parent `poseinterface/` chec
 Full directory layout: see [`README.md`](README.md#directory-layout). Workflows you'll hit
 often have their own docs under `skills/**/SKILL.md` (plain markdown with a short
 `name`/`description` frontmatter — readable by any agent, not just Claude). Each
-`description:` says when to use it; list them with `ls skills/*/SKILL.md skills/*/*/SKILL.md`
-(skills can be grouped in subdirectories, e.g. `skills/pretraining/`) and read the relevant
+`description:` says when to use it; list them with `ls skills/*/*/SKILL.md`
+(skills are grouped by stage: `skills/{pretrain,preprocess,train,evaluation}/`) and read the relevant
 one before starting the task — they have hard-won detail (what to ask before converting a
 dataset, why a version bump can refuse as a no-op, etc.) that isn't worth re-deriving from
 scratch.
@@ -38,7 +38,7 @@ scratch.
   `model.yaml`, `ALL_DATASETS`, running `convert_dataset.py`) is a separate decision
   that needs its own explicit go-ahead — never assume it just because stage 1
   finished, even in the same conversation. See
-  [`skills/preprocess-new-dataset/SKILL.md`](skills/preprocess-new-dataset/SKILL.md)
+  [`skills/preprocess/preprocess-new-dataset/SKILL.md`](skills/preprocess/preprocess-new-dataset/SKILL.md)
   for the full list of decisions (new keypoints, laterality, multi-view merging,
   train/test split) that need a human call rather than an inferred default.
 - **`ALL_DATASETS` and tracked configs go together.** A dataset is in `ALL_DATASETS`
@@ -80,10 +80,10 @@ public functions. Ruff (`pyproject.toml`) is the source of truth for anything it
   `patch.dict` on registries like `POST_PROCESS`).
 - CI (`.github/workflows/tests.yml`) installs every dependency *except* lightning-pose,
   so tested modules must not import `lightning_pose` at module level (import it inside the
-  function that needs it, as `mighty_mouse/train.py` does), and any package they import
+  function that needs it, as `mighty_mouse/train/sweep.py` does), and any package they import
   directly must be listed in `pyproject.toml` rather than arriving via lightning-pose.
 
-**Scripts that write to real data.** `scripts/convert_dataset.py` and
-`scripts/build_dataset.py` write into `data_dir` from `paths.yaml` unless given
+**Scripts that write to real data.** `scripts/preprocess/convert_dataset.py` and
+`scripts/preprocess/build_dataset.py` write into `data_dir` from `paths.yaml` unless given
 `--data_dir` — always pass a scratch `--data_dir` when smoke-testing them.
-`scripts/transfer_pseudo_labels.py` and `scripts/ensemble_pseudo_labels.py` edit raw label CSVs in place.
+`scripts/preprocess/transfer_pseudo_labels.py` and `scripts/preprocess/ensemble_pseudo_labels.py` edit raw label CSVs in place.
