@@ -3,11 +3,14 @@
 Catches stale references after files move: `scripts/...`, `skills/...`, `mighty_mouse/...`,
 `tests/...`, `configs/...`, `docs/...` paths, dotted `mighty_mouse.a.b` module names and
 relative markdown links. CHANGELOG.md files are history and are not checked, nor is this file
-(its examples are deliberately fake).
+(its examples are deliberately fake). A missing path is fine if git ignores it (e.g. configs of
+undecided datasets, which exist locally but not in CI).
 """
 
 import re
+import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -37,11 +40,16 @@ def is_placeholder(token: str) -> bool:
     return any(c in token for c in "<>{}*") or "..." in token or "$" in token
 
 
+def is_gitignored(rel: str) -> bool:
+    result = subprocess.run(["git", "check-ignore", "-q", rel], cwd=REPO, capture_output=True)
+    return result.returncode == 0
+
+
 def missing_path(token: str) -> bool:
     token = token.rstrip(".:")
     if is_placeholder(token) or token in EXAMPLES:
         return False
-    return not (REPO / token).exists()
+    return not (REPO / token).exists() and not is_gitignored(token)
 
 
 def missing_module(dotted: str) -> bool:
@@ -66,7 +74,8 @@ def find_stale(path: Path) -> list[str]:
                 target = m[1]
                 if "://" in target or target.startswith("mailto:") or is_placeholder(target):
                     continue
-                if not (path.parent / target).resolve().exists():
+                resolved = (path.parent / target).resolve()
+                if not resolved.exists() and not is_gitignored(str(resolved.relative_to(REPO))):
                     stale.append(f"{rel}:{n}: link {target}")
     return stale
 
@@ -81,7 +90,7 @@ class TestFindStale:
     def test_find_stale_flags_missing_path(self, tmp_path):
         f = tmp_path / "x.py"
         f.write_text("# see scripts/does_not_exist.py\n")
-        with __import__("unittest.mock").mock.patch(f"{__name__}.REPO", tmp_path):
+        with patch(f"{__name__}.REPO", tmp_path):
             assert find_stale(f) == ["x.py:1: scripts/does_not_exist.py"]
 
     def test_find_stale_flags_missing_module(self):
@@ -92,3 +101,10 @@ class TestFindStale:
     def test_find_stale_ignores_placeholders(self):
         assert not missing_path("scripts/preprocess/<dataset>/")
         assert not missing_path("tests/<stage>/test_b.py")
+
+    def test_find_stale_accepts_missing_gitignored_path(self, tmp_path):
+        subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+        (tmp_path / ".gitignore").write_text("configs/datasets/undecided.yaml\n")
+        with patch(f"{__name__}.REPO", tmp_path):
+            assert not missing_path("configs/datasets/undecided.yaml")
+            assert missing_path("configs/datasets/other.yaml")
