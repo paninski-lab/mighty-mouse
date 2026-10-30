@@ -36,6 +36,58 @@ def combine_originals(train: pd.DataFrame, test: pd.DataFrame) -> tuple[pd.DataF
     return both, source
 
 
+def add_missing_keypoints(labels: pd.DataFrame, keypoints: list[str]) -> pd.DataFrame:
+    """`labels` with empty columns appended for each of `keypoints` it does not have.
+
+    The dataset's own CSVs need not carry the keypoints being labeled (e.g. a new lab label
+    version arrives without them); tolabel always has them, after the dataset's columns.
+    """
+    have = set(labels.columns.get_level_values(1))
+    scorer = labels.columns[0][0]
+    coords = list(dict.fromkeys(labels.columns.get_level_values(2)))
+    extra = [(scorer, kp, c) for kp in keypoints if kp not in have for c in coords]
+    if not extra:
+        return labels
+    cols = pd.MultiIndex.from_tuples(extra, names=labels.columns.names)
+    return pd.concat([labels, pd.DataFrame(np.nan, index=labels.index, columns=cols)], axis=1)
+
+
+def sync_tolabel(
+    tolabel: pd.DataFrame, originals: pd.DataFrame, keypoints: list[str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """`tolabel` with every cell outside `keypoints` taken from `originals`.
+
+    tolabel follows the dataset's current labels everywhere except the keypoints being labeled:
+    its rows and their order are kept, its `keypoints` columns untouched, and its columns follow
+    `originals` (which must carry `keypoints`, see `add_missing_keypoints`).
+
+    Returns:
+        (synced tolabel, one row per changed cell: image, keypoint, coord, old, new)
+
+    Raises:
+        ValueError: if a tolabel image is not in `originals`
+    """
+    missing = tolabel.index.difference(originals.index)
+    if len(missing):
+        raise ValueError(
+            f"{len(missing)} tolabel images are not in the originals, e.g. {missing[0]}"
+        )
+    synced = originals.loc[tolabel.index].copy()
+    kp_cols = [c for c in synced.columns if c[1] in keypoints]
+    synced[kp_cols] = tolabel[kp_cols]
+    other = [c for c in synced.columns if c[1] not in keypoints]
+    old = tolabel.reindex(columns=other).to_numpy(dtype=float)
+    new = synced[other].to_numpy(dtype=float)
+    diff = np.abs(np.nan_to_num(old) - np.nan_to_num(new)) > 1e-6
+    same = (np.isnan(old) == np.isnan(new)) & ~diff
+    r, c = np.nonzero(~same)
+    changes = pd.DataFrame({
+        "image": synced.index[r], "keypoint": [other[j][1] for j in c],
+        "coord": [other[j][2] for j in c], "old": old[r, c], "new": new[r, c],
+    })
+    return synced, changes
+
+
 def sample_per_session(images: pd.Index, n: int, seed: int) -> pd.Index:
     """Draw up to `n` images at random from each session (parent directory).
 
@@ -116,6 +168,19 @@ def select_frames(scores: pd.Series, m: int | None) -> pd.Index:
     if m is None:
         return ranked.index
     return ranked.dropna().index[:m]
+
+
+def read_frame_ids(text: str) -> pd.Index:
+    """Image paths from a frame-id list: one `labeled-data/<session>/<frame>.png` per line,
+    blank lines and `#` comments ignored."""
+    lines = (line.strip() for line in text.splitlines())
+    return pd.Index(dict.fromkeys(line for line in lines if line and not line.startswith("#")))
+
+
+def exclude_frames(scores: pd.Series, excluded: pd.Index) -> pd.Series:
+    """Drop `excluded` frames (e.g. reserved for another labeler) from the pool `scores`,
+    so `select` can never pick them. Ids not in the pool are ignored."""
+    return scores.drop(scores.index.intersection(excluded))
 
 
 def order_by_session(chosen: pd.Index, originals_index: pd.Index) -> pd.Index:
@@ -208,10 +273,13 @@ def merge_back(
 ) -> pd.DataFrame:
     """Copy the `keypoints` columns of `tolabel` into `originals`, keeping its rows and order.
 
+    Keypoints `originals` does not have yet are appended after its columns.
+
     Raises:
         ValueError: if an original image is missing from `tolabel`, or `tolabel` differs
             from `originals` in any other column (it would silently be lost)
     """
+    originals = add_missing_keypoints(originals, keypoints)
     missing = originals.index.difference(tolabel.index)
     if len(missing):
         raise ValueError(f"{len(missing)} original images are not in tolabel, e.g. {missing[0]}")

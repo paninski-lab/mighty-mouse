@@ -7,6 +7,10 @@
 
 exclude:
   keypoints:
+  # The 26 sessions below were labeled on frames extracted from video snippets (e.g.
+  # `<uuid>_..._20min` is a 20-min snippet) whose position in the full session video is unknown:
+  # frame numbers are relative to the snippet, so a labeled frame cannot be matched with certainty
+  # to its frame in the full video. Excluded for now so that every retained label has full metadata.
   sessions:
     - 6c6983ef-7383-4989-9183-32b1a300d17a_iblrig_leftCamera.paws_downsampled_20min
     - 6c6983ef-7383-4989-9183-32b1a300d17a_iblrig_rightCamera.paws_downsampled.flipped_20min

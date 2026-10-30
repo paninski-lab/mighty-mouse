@@ -30,6 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "imageio-ffmpeg",
     "lightning-pose (>=2.2.1)",
     "matplotlib",
     "numpy (>=2.0.0)",
