@@ -6,8 +6,7 @@ The run's own evaluation already predicts every dataset's test frames (eval/<ds>
 this adds the left-out dataset's train frames, which the model never saw either, so zero-shot
 transfer can be scored on all of that dataset's labeled frames
 (scripts/evaluation/zeroshot_score.py). Writes
-<run>/zeroshot/<dataset>_train_predictions.csv; scripts/train/train_plan.sh runs it after each
-loo run.
+<run>/zeroshot/<dataset>_train_predictions.csv.
 Needs a GPU and the run's checkpoint (train with --keep_checkpoints).
 
     python scripts/evaluation/zeroshot_predict.py --run <run_dir> --dataset kaufman [--data_dir \

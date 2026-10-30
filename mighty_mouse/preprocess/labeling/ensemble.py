@@ -1,8 +1,7 @@
 """Run an ensemble of Lightning Pose models on a label CSV's images and combine them.
 
-Shared by `scripts/preprocess/ensemble_pseudo_labels.py` and
-`scripts/preprocess/active_labeling.py`. Nothing
-here imports `lightning_pose`: `predict` takes an already-loaded `lightning_pose.api.Model`.
+Nothing here imports `lightning_pose`: `predict` takes an already-loaded
+`lightning_pose.api.Model`.
 """
 
 from pathlib import Path

@@ -18,8 +18,8 @@ Node naming is inconsistent between the two skeletons ("digit 4" in side vs.
 "digit4" in front) -- normalized to "digit4" here so both views produce the
 same source column name for configs/datasets/hantman.yaml.
 
-Split is subject-level and pooled across both views, via mighty_mouse.preprocess.subject_split
-(shared with scripts/preprocess/hantman-mv/convert_hantman_mv.py): a subject is
+Split is subject-level and pooled across both views, via mighty_mouse.preprocess.subject_split:
+a subject is
 the first '_'-delimited token in a session name ({subject}_{date}_{view}_{version}),
 uppercased so casing slips in the source filenames (e.g. "jcr130" vs "JCR130")
 don't split the same animal across train/test. All of a subject's sessions --

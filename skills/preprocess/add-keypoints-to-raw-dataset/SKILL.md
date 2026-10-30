@@ -103,7 +103,7 @@ it from file timestamps.
 4. **Map them** in `configs/datasets/<dataset>.yaml` under `keypoints` (per decision 2),
    and update `POST_PROCESS` in `mighty_mouse/preprocess/convert.py` per decision 3 — keep the
    comment above the hook in sync with what it now does, and extend the hook's cases in
-   `tests/test_convert.py`; run `python -m pytest`. Also update the dataset's
+   `tests/preprocess/test_convert.py`; run `python -m pytest`. Also update the dataset's
    `scripts/preprocess/<dataset>/README.md` if it lists the mapped keypoints or
    describes the hook.
 

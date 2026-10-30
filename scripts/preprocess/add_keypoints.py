@@ -5,8 +5,7 @@ Add new, empty keypoints to a raw dataset so they can be labeled in the LP app.
 Appends empty x/y columns to _raw/<dataset>/CollectedData.csv and CollectedData_test.csv
 and the names to project.yaml's keypoint_names. Existing bytes in the CSVs are left
 untouched (see mighty_mouse.labels.append_keypoint_columns). Doesn't touch
-configs/datasets/<dataset>.yaml, the changelog, or the version -- see
-skills/preprocess/add-keypoints-to-raw-dataset/SKILL.md for the rest of the workflow.
+configs/datasets/<dataset>.yaml, the changelog, or the version.
 
 Usage:
   python scripts/preprocess/add_keypoints.py hantman-mv --keypoints nose_top pad_top pad_side \

@@ -3,8 +3,7 @@
 
 Snapshots CollectedData.csv / CollectedData_test.csv into versions/, ticks
 VERSION.txt, and inserts a changelog entry — all in one step, so the three
-never drift out of sync. See ../../skills/preprocess/bump-dataset-version/SKILL.md for the
-versioning policy (when to bump, what version 0 means, etc.).
+never drift out of sync.
 """
 import argparse
 import filecmp

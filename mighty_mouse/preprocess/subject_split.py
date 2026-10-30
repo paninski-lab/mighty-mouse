@@ -1,11 +1,7 @@
 """
-Subject-level train/test splitting, shared by preprocessing scripts that need to keep
-a subject (animal) entirely on one side of the split (e.g. because it appears in
-multiple views/sessions and no group should leak across train/test).
-
-Previously duplicated near-identically in scripts/preprocess/hantman-sleap/ and
-scripts/preprocess/hantman-mv/ -- see skills/preprocess/preprocess-new-dataset/SKILL.md's
-train/test split question for when this applies vs. the default session-level split.
+Subject-level train/test splitting, for converters that need to keep a subject (animal)
+entirely on one side of the split (e.g. because it appears in multiple views/sessions and no
+group should leak across train/test), as opposed to the default session-level split.
 """
 
 import numpy as np

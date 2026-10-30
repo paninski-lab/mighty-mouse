@@ -19,8 +19,7 @@ labeled (unlabeled context frames), so a wholesale directory copy would pull
 in a lot of unused images.
 
 Split is subject-level (first '_'-delimited token of the session name,
-uppercased against casing slips), via mighty_mouse.preprocess.subject_split -- shared with
-scripts/preprocess/hantman-sleap/convert_hantman_sleap.py.
+uppercased against casing slips), via mighty_mouse.preprocess.subject_split.
 
 Usage:
     python scripts/preprocess/hantman-mv/convert_hantman_mv.py

@@ -11,8 +11,7 @@ augmentation makes the side irrelevant).
 The TOTAL row sums frames; its region columns count datasets with >0 keypoints there.
 
 Writes assets/corpus.csv (opens in Google Sheets) and assets/corpus.md (renders on
-GitHub). Run automatically at the end of scripts/preprocess/bump_version.py; also safe to run by
-hand.
+GitHub).
 """
 import csv
 import re

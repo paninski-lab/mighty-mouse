@@ -1,6 +1,6 @@
 #!/bin/bash
 # Training plan for the Mighty Mouse recipe on the current corpus (paths.yaml data_dir): which models
-# exist, which are missing, and training the missing ones (see skills/train/train-plan/SKILL.md).
+# exist, which are missing, and training the missing ones.
 #
 # Needs lightning-pose branch post_sub_lp_delta (paninski-lab/lightning-pose): temperature sampling,
 # per-dataset zoom, the nonlinear head and resumable runs are not in stock lightning-pose, and

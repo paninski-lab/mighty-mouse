@@ -19,7 +19,7 @@ or `ALL_DATASETS`, and its outputs don't live under `mighty-mouse/` at all.
 ## Writing the config
 
 Start from the `lightning-pose` repo's own template,
-`scripts/configs/config_default.yaml` (path varies by machine/checkout — ask if
+`<lightning-pose>/scripts/configs/config_default.yaml` (path varies by machine/checkout — ask if
 unsure), and fill in the `data:` section for the target dataset:
 
 - `data_dir`: absolute path to `_raw/<name>/`
@@ -38,7 +38,7 @@ unsure), and fill in the `data:` section for the target dataset:
 on one `_raw/<name>/` dataset, as described in this file. A model trained on a
 *composite/combined* dataset (multiple datasets merged via `build_dataset.py`) is a
 different workflow entirely and should follow
-[`mighty-mouse/configs/model.yaml`](../../configs/model.yaml)'s own defaults instead
+[`mighty-mouse/configs/model.yaml`](../../../configs/model.yaml)'s own defaults instead
 (currently `resnet50_animal_ap10k`, `Adam` @ `1e-3`, step-based schedule, etc.) — do
 not apply the values below to that pipeline, and don't edit `model.yaml` to match
 this list.

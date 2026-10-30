@@ -1,11 +1,9 @@
 """Ensemble-disagreement frame selection for pseudo-labeling new keypoints.
 
-The workflow (see `skills/preprocess/active-pseudo-labeling/SKILL.md`): draw a few frames per
-session
-into a `CollectedData_tolabel.csv`, label them by hand, train an ensemble on them, then
-repeatedly add the unlabeled frames the ensemble disagrees about most (prefilled with the
-ensemble mean) for the user to correct. Everything here operates on DataFrames; the
-`scripts/preprocess/active_labeling.py` CLI does the I/O and model inference.
+The workflow: draw a few frames per session into a `CollectedData_tolabel.csv`, label them by
+hand, train an ensemble on them, then repeatedly add the unlabeled frames the ensemble
+disagrees about most (prefilled with the ensemble mean) for the user to correct. Everything
+here operates on DataFrames; I/O and model inference are left to the caller.
 
 A keypoint's *spread* in a frame is sqrt(var_x + var_y) across all ensemble members
 (pixels). It only counts when the keypoint is *eligible*: at least one member predicts it

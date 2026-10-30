@@ -4,7 +4,7 @@ For every train/unlabeled video with embeddings, keep at most k (default 15000) 
 videos with at most k frames are kept whole, shorter ones use k-means with one random frame
 per cluster, long ones (default: at least 100k frames) a two-level k-means with balanced
 sampling. Output: <pretrain_dir>/dedup/<model_type>/<dataset>/<video_key>.npz (frame_idx,
-cluster_size, stats). See skills/pretrain/dedup-videos.
+cluster_size, stats).
 
 Usage:
     python scripts/pretrain/dedup_videos.py [--dataset ibl] [--overwrite]

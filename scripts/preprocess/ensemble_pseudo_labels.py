@@ -15,9 +15,6 @@ target CSV's raw column names (cheese-3d uses `eye(front)(left)` etc.).
 Per-model predictions are cached in --out_dir (reused if present), and a report of how
 many cells gained / lost a label per keypoint is written there. Never bumps the version.
 
-See ../skills/preprocess/transfer-pseudo-labels/SKILL.md (ensemble section) for the workflow and
-the decisions to confirm first.
-
 Must be run in the `pose` conda env. Dry run first:
     python scripts/preprocess/ensemble_pseudo_labels.py \\
         --model_dirs results/cheese-2d/<run0> results/cheese-2d/<run1> results/cheese-2d/<run2> \\

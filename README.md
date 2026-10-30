@@ -396,7 +396,7 @@ don't cross-check each other. When renaming (e.g. `ibl-face` → `ibl`) or depre
 A pipeline preprocessing folder name can reasonably stay divergent from the dataset name it
 produces (e.g. `scripts/preprocess/hantman-sleap/` produces the `hantman` dataset) — it names
 the *process*, not the dataset's identity in `configs/datasets/` or `_raw/`. That said, this isn't
-mandatory: `scripts/preprocess/ibl-face/` was renamed to `scripts/preprocess/ibl/` on
+mandatory: the `ibl-face` converter directory was renamed to `ibl` on
 2026-09-26 to match the dataset name, once the divergence stopped being useful.
 
 ### Dataset versioning

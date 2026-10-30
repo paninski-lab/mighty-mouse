@@ -7,7 +7,6 @@ CSV for the current round), plus `poseinterface/results/<dataset>/active/` (mani
 backups, per-round prediction caches and reports). The original CollectedData*.csv are
 only written by `finalize`. Never bumps the version.
 
-See ../../skills/preprocess/active-pseudo-labeling/SKILL.md for the workflow and what to ask first.
 Before any subcommand that writes a CSV the LP app edits (init, select, reorder, sync, finalize)
 the user must leave the dataset's project in the app (back to the home screen listing all
 projects).

@@ -1,6 +1,5 @@
 """
-Pixel-error scoring shared by evaluation (mighty_mouse/train/sweep.py) and the comparison tables
-(scripts/evaluation/eval_suite.py, scripts/evaluation/zeroshot_score.py).
+Pixel-error scoring for evaluation runs and the comparison tables.
 
 Only labeled cells are scored: visible == 2 in the converted labels (1 = occluded and
 0 = unlabeled are never scored). The tongue and lip keypoints are left out of every pixel-error

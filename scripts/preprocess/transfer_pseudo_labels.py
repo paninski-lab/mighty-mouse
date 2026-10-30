@@ -39,11 +39,6 @@ What this script deliberately does NOT do:
 Must be run in the `pose` conda env:
     python scripts/preprocess/transfer_pseudo_labels.py ...
 
-See ../../skills/preprocess/transfer-pseudo-labels/SKILL.md for the full workflow and the checklist
-of decisions to confirm with the user before running this (keypoint-name overlap
-between source model and target dataset, confidence threshold, scope, per-view
-masking).
-
 Usage example (dry run first):
     python scripts/preprocess/transfer_pseudo_labels.py \\
         --model_dir /media/mattw/poseinterface/results/cheese-3d/2026-09-26_15-45-24 \\

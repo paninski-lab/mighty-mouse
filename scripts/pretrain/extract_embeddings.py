@@ -1,7 +1,7 @@
 """Extract one CLS token per frame, for every video in the pretraining videos paths file.
 
 Outputs: <pretrain_dir>/embeddings/<model_type>/<dataset>/<video_key>.npy
-(float16, shape (n_frames, hidden_size)). See skills/pretrain/extract-embeddings.
+(float16, shape (n_frames, hidden_size)).
 
 Usage:
     python scripts/pretrain/extract_embeddings.py [--dataset ibl] [--overwrite]

@@ -1,8 +1,8 @@
 """
 Subsample and merge converted per-dataset CSVs into a combined training set.
 
-The CLI is scripts/preprocess/build_dataset.py; see docs/build_dataset.md for the design (balanced
-vs. full tags, why test sets are never subsampled).
+See docs/build_dataset.md for the design (balanced vs. full tags, why test sets are never
+subsampled).
 """
 
 import hashlib

@@ -1,7 +1,7 @@
 """
 Convert one raw labeled dataset into the standardized format for combined training.
 
-Driven by configs/datasets/<dataset>.yaml (see scripts/preprocess/convert_dataset.py for the CLI):
+Driven by configs/datasets/<dataset>.yaml:
   - session and keypoint exclusions
   - bilateral keypoint lateralization (adds _left / _right variants)
   - keypoint renaming to canonical names from configs/keypoints.yaml

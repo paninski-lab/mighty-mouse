@@ -1,10 +1,9 @@
 """
 Shared utilities for Lightning Pose training sweeps over the head-fixed dataset.
 
-Used by both `scripts/train/train_sweep.py` (local, sequential) and
-`scripts/train/train_sweep_lightning.py` (Lightning AI, parallel), so combo
-generation, naming, and command-building stay identical across backends —
-only *how* a command gets executed differs between the two scripts.
+Combo generation, naming, and command-building live here so they stay identical across the
+local (sequential) and Lightning AI (parallel) backends — only *how* a command gets executed
+differs.
 
 Also invocable standalone to run evaluation only. This exists because a
 Lightning AI Job is an independent remote process: there's no "come back to
