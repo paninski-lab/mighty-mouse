@@ -253,7 +253,7 @@ mighty-mouse/
   # skills one level deep).
 
   skills/<stage>/<name>/SKILL.md
-    pretrain/                   extract-embeddings, dedup-videos
+    pretrain/                   extract-embeddings, dedup-videos, extract-frames
     preprocess/                 preprocess-new-dataset, add-keypoints-to-raw-dataset, bump-dataset-version,
                                  transfer-pseudo-labels, active-pseudo-labeling, train-lightning-pose-model
     train/                      train-plan
@@ -263,6 +263,7 @@ mighty-mouse/
     pretrain/
       extract_embeddings.py     per-frame CLS embeddings for every pretraining video (see skills/pretrain/extract-embeddings)
       dedup_videos.py           stage-1 per-video dedup of those embeddings (see skills/pretrain/dedup-videos)
+      extract_frames.py         extract selected frames as junk-screened, downscaled PNGs (see skills/pretrain/extract-frames)
     preprocess/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
       extract_clips.py          cut short high-motion clips from raw videos for review
@@ -305,6 +306,7 @@ mighty-mouse/
       kmeans.py                 chunked spherical k-means on GPU
       hierarchical.py           two-level k-means + balanced sampling (used by dedup.py for long videos)
       dedup.py                  stage-1 selection: flat or two-level k-means, one random frame per cluster, per video
+      frames.py                 stage-3 frame extraction: resize, junk screen, output layout
     preprocess/
       convert.py                per-dataset conversion logic + POST_PROCESS hooks
                                  (CLI: scripts/preprocess/convert_dataset.py)

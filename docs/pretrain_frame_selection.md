@@ -30,7 +30,7 @@ head-fixed-mouse video, to pretrain a ViT backbone with masked autoencoding. Wha
 | 0. Embed | frozen DINOv3 ViT-S/16 CLS token per frame, float16 (`extract_embeddings.py`) | done |
 | 1. Per-video dedup | keep at most 15k representative frames per video (`dedup_videos.py`) | done |
 | 2. Dataset budgets + cross-video selection | pool stage-1 frames, choose ~1M | planned, below |
-| 3. Frame extraction | decode the chosen frames to pretraining images | not started |
+| 3. Frame extraction | decode the chosen frames, drop junk, save images (`extract_frames.py`) | built; run for the 100k comparison sets |
 
 Embeddings are CLS-only (storage) at 224 px. All of it lives under `pretrain_dir`.
 
@@ -135,3 +135,33 @@ chosen. Everything is prototyped in the scratchpad first.
 - The output format of the final selection (something like a per-dataset table of video key and
   frame index under `pretrain_dir`) and the frame-extraction step.
 - Re-check the stage-1 100k threshold if a new dataset's video lengths land in an untested range.
+
+## 100k comparison sets and stage 3
+
+The first pretraining comparison uses ~100k-frame sets, one per method, each selected natively
+at 100k (not subsampled from a 1M selection). Method names are used in directory names
+(`<pretrain_dir>/pretrain_datasets/100k_method<m>/`):
+
+- **A1**: per-dataset budgets `frames^0.3` (water-filled, capped at the stage-1 pool), then
+  balanced hierarchical k-means inside each dataset.
+- **A2**: the same budgets, then greedy farthest-point selection inside each dataset.
+- **B**: one global two-level k-means over the pooled stage-1 frames of all datasets (k1 = 1.5x
+  the target, 1000 groups), balanced sampling to 100k. Dataset budgets come from the cluster
+  structure.
+
+Findings behind the choice of these three (1M-frame budgets, 16 datasets; scratch experiments,
+medians relative to flat k-means at equal budgets): A2 has the best tail coverage (-16% p99.9),
+fewest densest-state frames (-27%), most rare-state frames (+22%) and keeps all of the 1% most
+isolated frames, at +21% worse mean coverage; A1 sits in between (+4% mean, -3% p99.9). B
+selects like A1 but its allocation follows the pool (ibl 28%, warren 28%) and starves small
+datasets (facemap, cheese-2d, hantman-mv, costa-peterka, deepfacemouse at 12-35% of their A
+budget); it also costs ~2 h versus minutes. A2 over-picks dark frames (ibl, hantman) and some
+blown-out or blank ones, hence the junk screen below.
+
+**Stage 3.** `extract_frames.py` writes `<dataset>/<video_key>/img<frame:08d>.png` (the layout
+the beast repo reads), with the short side downscaled to 256 (smaller frames kept as they are;
+the 1M set can use a larger side later). Junk frames are dropped, not backfilled: gray std < 10
+(blank/black/flat) or more than half the pixels brighter than 245 (blown out); the run errors
+if over 0.5% of a method's frames, or 2% of a dataset's, are junk. The rule was calibrated on
+contact sheets of A2 and random pool frames; tinted and dark-but-visible frames (whole real
+sessions in ibl, scara, costa-peterka) are deliberately kept.
