@@ -36,8 +36,8 @@ import pandas as pd
 from mighty_mouse.datasets import ALL_DATASETS, tag_of
 from mighty_mouse.evaluation.comparison import trained_keypoints, visible_errors
 from mighty_mouse.paths import load_paths
+from mighty_mouse.train.layout import TRAIN_SUFFIX, recipe_run_dir, tag_of_train_name, train_name
 
-LEAF   = "supervised/sampling-T2/tf1/vits_dinov3/seed0"
 ZERO   = "zero-shot (leave-out)"
 POOLED = ("TRAINED", "ALL")
 
@@ -132,14 +132,15 @@ def main() -> None:
 
     inventory = json.loads((data_dir / "dataset_inventory.json").read_text())["datasets"]
     loo, all_run = {}, None
-    for tag_dir in sorted((results_dir / args.area).glob("*_train")):
-        run = tag_dir / LEAF
+    area_dir = results_dir / args.area
+    for tag_dir in sorted(area_dir.glob(f"*{TRAIN_SUFFIX}")):
+        run = recipe_run_dir(area_dir, tag_of_train_name(tag_dir.name))
         if not (run / "eval").is_dir():
             continue
         zs = list((run / "zeroshot").glob("*_train_predictions.csv"))
         if len(zs) == 1:   # leave-ONE-out; trunks leaving out several datasets are not this table
             loo[zs[0].name[: -len("_train_predictions.csv")]] = run
-        elif tag_dir.name == f"{tag_of(ALL_DATASETS)}_train":
+        elif tag_dir.name == train_name(tag_of(ALL_DATASETS)):
             all_run = run
 
     rows, trained_of = [], {}
@@ -153,7 +154,7 @@ def main() -> None:
         if all_run:
             models.append(("all-data trunk", all_run,
                            {"test": all_run / "eval" / ds / "predictions.csv"}))
-        ded = results_dir / args.dedicated / f"{ds}_train" / LEAF
+        ded = recipe_run_dir(results_dir / args.dedicated, ds)
         if (ded / "eval" / ds / "predictions.csv").exists():
             models.append(("dedicated", ded, {"test": ded / "eval" / ds / "predictions.csv"}))
         for model, run, splits in models:

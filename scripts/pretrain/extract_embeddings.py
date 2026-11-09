@@ -23,7 +23,7 @@ from mighty_mouse.pretrain.embed import (
     load_cls_embedder,
     output_path,
 )
-from mighty_mouse.pretrain.paths import embeddings_dir, pretrain_dir, videos_paths_file
+from mighty_mouse.pretrain.layout import embeddings_dir, pretrain_dir, videos_paths_file
 from mighty_mouse.pretrain.video_list import list_videos
 
 

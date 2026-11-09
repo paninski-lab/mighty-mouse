@@ -31,8 +31,7 @@ import pandas as pd
 from mighty_mouse.datasets import ALL_DATASETS, SHORT_NAMES
 from mighty_mouse.evaluation.comparison import ALWAYS_EXCLUDED
 from mighty_mouse.paths import load_paths
-
-LEAF = "supervised/sampling-T2/tf1/vits_dinov3"
+from mighty_mouse.train.layout import TRAIN_SUFFIX, recipe_seed_dirs, tag_of_train_name
 
 
 def run_label(area: str, tag: str) -> str:
@@ -55,10 +54,11 @@ def discover(results_dir: Path) -> dict[str, Path]:
     """Every evaluated run under results_dir/trunks*/ and results_dir/dedicated*/."""
     runs = {}
     for area_dir in sorted([*results_dir.glob("trunks*"), *results_dir.glob("dedicated*")]):
-        for tag_dir in sorted(area_dir.glob("*_train")):
-            for seed_dir in sorted(tag_dir.glob(f"{LEAF}/seed*")):
+        for tag_dir in sorted(area_dir.glob(f"*{TRAIN_SUFFIX}")):
+            tag = tag_of_train_name(tag_dir.name)
+            for seed_dir in recipe_seed_dirs(area_dir, tag):
                 if (seed_dir / "eval").is_dir():
-                    name = run_label(area_dir.name, tag_dir.name[: -len("_train")])
+                    name = run_label(area_dir.name, tag)
                     seed = f"#{seed_dir.name}" if seed_dir.name != "seed0" else ""
                     runs[name + seed] = seed_dir
     return runs

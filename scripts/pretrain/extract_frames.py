@@ -37,7 +37,7 @@ from mighty_mouse.pretrain.frames import (
     resize_min_side,
     save_frame,
 )
-from mighty_mouse.pretrain.paths import pretrain_dir, subset_dir, videos_paths_file
+from mighty_mouse.pretrain.layout import pretrain_dir, subset_dir, videos_paths_file
 from mighty_mouse.pretrain.video_list import list_videos
 
 SELECTION_FILE = "selection.csv"

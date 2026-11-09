@@ -300,7 +300,7 @@ mighty-mouse/
       house_style.py            shared colours, banner, header/footer for overlay videos (skills/evaluation/pose-video)
       views.py                  camera view of a labeled frame
     pretrain/
-      paths.py                  fixed layout inside the `pretrain_dir` directory (paths.yaml's only pretraining entry)
+      layout.py                 fixed layout inside the `pretrain_dir` directory (paths.yaml's only pretraining entry)
       video_list.py             flatten the pretraining videos paths file into videos to process
       embed.py                  frame decoding + frozen-ViT CLS extraction
       kmeans.py                 chunked spherical k-means on GPU
@@ -320,6 +320,8 @@ mighty-mouse/
         ensemble.py             run an ensemble of LP models on a label CSV's images; confidence-thresholded mean
         active_labeling.py      ensemble-disagreement frame selection, stats, merge-back (CLI: scripts/preprocess/active_labeling.py)
     train/
+      layout.py                 run-directory layout (<tag>_train/<losses>/.../seed<N>) and the Mighty Mouse
+                                 recipe's identity; also a small CLI used by train_plan.sh
       sweep.py                  sweep combo/naming/command logic shared by both train_sweep*.py scripts;
                                  also a standalone CLI (`python -m mighty_mouse.train.sweep`) for evaluation only
     evaluation/

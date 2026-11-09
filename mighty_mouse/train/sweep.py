@@ -31,6 +31,13 @@ import yaml
 from mighty_mouse.datasets import ALL_DATASETS
 from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths, repo_root
+from mighty_mouse.train.layout import (
+    losses_tag,
+    parse_run_dir,
+    run_dir,
+    sanitize,
+    temperature_tag,
+)
 
 _paths      = load_paths()
 DATA_DIR    = Path(_paths["data_dir"])
@@ -56,39 +63,13 @@ def csv_stem(csv_file: str) -> str:
 
 
 def infer_csv_file(output_dir: Path) -> str:
-    """Inverse of csv_stem applied inside make_output_dir: the first path
-    component under RESULTS_DIR is always csv_stem(csv_file), so the original
-    train CSV filename can be recovered from output_dir alone."""
-    rel = Path(output_dir).resolve().relative_to(RESULTS_DIR.resolve())
-    return f"CollectedData_{rel.parts[0]}.csv"
-
-
-def losses_tag(losses: list[str]) -> str:
-    return "supervised" if not losses else "+".join(sorted(losses))
-
-
-def sanitize(s: str) -> str:
-    return str(s).replace("/", "_").replace(".", "_")
-
-
-def temperature_tag(temperature) -> str | None:
-    """Path/name component for a sampling temperature; None when the run is stock.
-
-    T=1 (or unset) gets no component, so frame-proportional runs keep the paths they had
-    before temperatures existed and --skip_existing keeps recognizing them: T=1 IS the stock
-    loader.
-    """
-    if temperature in (None, 1, "1"):
-        return None
-    return f"sampling-T{temperature}"
+    """Train CSV filename a run directory was trained on (inverse of make_output_dir)."""
+    return f"CollectedData_{parse_run_dir(output_dir)['train_name']}.csv"
 
 
 def make_output_dir(csv_file, backbone, train_frames, seed, losses, temperature=None) -> Path:
-    parts = [csv_stem(csv_file), losses_tag(losses)]
-    if (tag := temperature_tag(temperature)) is not None:
-        parts.append(tag)
-    parts += [f"tf{train_frames}", sanitize(backbone), f"seed{seed}"]
-    return RESULTS_DIR.joinpath(*parts)
+    return run_dir(RESULTS_DIR, csv_stem(csv_file), losses, temperature, train_frames, backbone,
+                   seed)
 
 
 def make_job_name(csv_file, backbone, train_frames, seed, losses, temperature=None) -> str:

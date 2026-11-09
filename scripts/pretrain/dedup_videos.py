@@ -35,7 +35,7 @@ from mighty_mouse.pretrain.dedup import (
 )
 from mighty_mouse.pretrain.embed import MODEL_TYPES
 from mighty_mouse.pretrain.embed import output_path as embeddings_path
-from mighty_mouse.pretrain.paths import (
+from mighty_mouse.pretrain.layout import (
     dedup_dir,
     embeddings_dir,
     pretrain_dir,
