@@ -9,16 +9,23 @@ from unittest.mock import patch
 import pytest
 
 from mighty_mouse.datasets import ALL_DATASETS
-from mighty_mouse.paths import repo_root
 
 DATA_DIR = Path("/data/corpus")
 RESULTS_DIR = Path("/results")
+REPO = Path(__file__).parents[2]
 
 
 @pytest.fixture(scope="module")
 def train():
     """mighty_mouse.train.sweep (needs no paths.yaml)."""
     return importlib.import_module("mighty_mouse.train.sweep")
+
+
+@pytest.fixture(autouse=True)
+def repo_root():
+    """The repo root without a paths.yaml (which is not committed, so CI has none)."""
+    with patch("mighty_mouse.train.sweep.repo_root", return_value=REPO):
+        yield
 
 
 def fake_lightning_pose(branch: bool) -> dict[str, types.ModuleType]:
@@ -119,7 +126,7 @@ class TestMakeTrainCommand:
     def test_make_train_command_stock(self, train):
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
                                        Path("/out"), DATA_DIR)
-        assert cmd[:3] == ["litpose", "train", str(repo_root() / "configs" / "model.yaml")]
+        assert cmd[:3] == ["litpose", "train", str(REPO / "configs" / "model.yaml")]
         assert f"data.data_dir={DATA_DIR}" in self.overrides(cmd)
         assert not any("dataset_names" in o or "sampling" in o for o in self.overrides(cmd))
 
@@ -163,6 +170,6 @@ class TestMakeEvalCommand:
     def test_make_eval_command_runs_evaluate_run_script(self, train):
         cmd = train.make_eval_command(Path("/out/run"))
         assert cmd[0] == "python"
-        assert cmd[1] == str(repo_root() / "scripts" / "evaluation" / "evaluate_run.py")
+        assert cmd[1] == str(REPO / "scripts" / "evaluation" / "evaluate_run.py")
         assert Path(cmd[1]).is_file()
         assert cmd[2:] == ["--run", "/out/run"]
