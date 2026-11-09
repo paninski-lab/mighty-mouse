@@ -42,11 +42,11 @@ while [ $# -gt 0 ]; do case "$1" in
   *) STAGES="${STAGES:-} $1"; shift;; esac; done
 STAGES="${STAGES:-all dedicated loo}"
 
-LEAF="supervised/sampling-T2/tf1/vits_dinov3"
-SWEEP="--config_file configs/model_zoominout.yaml --train_frames 1 --backbones vits_dinov3 --sampling_temperatures 2 --keep_checkpoints --skip_existing"
+SWEEP="--config_file configs/model_zoominout.yaml $(python -m mighty_mouse.train.layout sweep-args) --keep_checkpoints --skip_existing"
 HEAD_OV="+model.head_hidden_channels=256;+training.resume_every_n_steps=500"
 TRUNK_OV="training.unfreezing_step=3000;training.min_steps=14000;training.max_steps=14000;training.lr_scheduler_params.multisteplr.milestone_steps=[6000,8000,10000];data.image_resize_dims.height=384;data.image_resize_dims.width=384"
 
+run_dir() { python -m mighty_mouse.train.layout run-dir "$RESULTS/$1" "$2" "$3"; }   # area tag seed
 tag_of() { python -c "import sys; from mighty_mouse.datasets import tag_of; print(tag_of(sys.argv[1:]))" "$@"; }
 all_tag=$(tag_of "${DATASETS[@]}") || exit 1
 loo_tag() { local keep=(); for d in "${DATASETS[@]}"; do [ "$d" != "$1" ] && keep+=("$d"); done; tag_of "${keep[@]}"; }
@@ -76,7 +76,7 @@ case "$cmd" in
     rows | while read -r stage area tag out; do
       printf "%-10s %-62s" "$stage" "$tag"
       if [ ! -f "$DATA/CollectedData_${tag}_train.csv" ]; then echo " NO CSV (build the tag first)"; continue; fi
-      for s in ${SEEDS//;/ }; do printf " %-10s" "$(status_of "$RESULTS/$area/${tag}_train/$LEAF/seed$s")"; done; echo
+      for s in ${SEEDS//;/ }; do printf " %-10s" "$(status_of "$(run_dir "$area" "$tag" "$s")")"; done; echo
     done ;;
   dry|run|show)
     # lightning-pose asserts <data_dir>/videos exists even for labeled-frame training
@@ -89,7 +89,7 @@ case "$cmd" in
       echo 'running() { ps -eo args | grep -c "^[^ ]*python[0-9.]* scripts/train/train_sweep.py"; }'
     } > "$script"
     while read -r stage area tag out; do for s in ${SEEDS//;/ }; do
-      dir="$RESULTS/$area/${tag}_train/$LEAF/seed$s"; st=$(status_of "$dir")
+      dir=$(run_dir "$area" "$tag" "$s"); st=$(status_of "$dir")
       [ -f "$DATA/CollectedData_${tag}_train.csv" ] || { echo "skip $stage $tag: NO CSV (build the tag first)" >&2; continue; }
       # done: nothing to do; PARTIAL: crashed without a rolling checkpoint, delete it to retrain
       case "$st" in done|PARTIAL) echo "skip $stage $tag seed$s: $st" >&2; continue;; esac

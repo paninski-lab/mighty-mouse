@@ -24,18 +24,18 @@ from mighty_mouse.pretrain.dedup import (
     SKIP_FIRST_SECONDS,
     TWO_LEVEL_MIN_FRAMES,
     choose_method,
+    dedup_video,
     load_selection,
     output_path,
     save_selection,
     seed_from_key,
-    select_frames,
     skip_first_frames,
     stored_method,
     video_fps,
 )
 from mighty_mouse.pretrain.embed import MODEL_TYPES
 from mighty_mouse.pretrain.embed import output_path as embeddings_path
-from mighty_mouse.pretrain.paths import (
+from mighty_mouse.pretrain.layout import (
     dedup_dir,
     embeddings_dir,
     pretrain_dir,
@@ -120,7 +120,7 @@ def main() -> None:
             emb = np.load(embeddings_path(embeddings_dir(root), args.model_type, v.dataset, v.key))
             if v.n_frames is not None and len(emb) != v.n_frames:
                 print(f"  WARNING: {len(emb)} embeddings, videos paths file says {v.n_frames}")
-            frame_idx, cluster_size, stats = select_frames(
+            frame_idx, cluster_size, stats = dedup_video(
                 emb, args.k, seed_from_key(v.key), device, args.method,
                 args.two_level_min_frames, skip_for(v),
             )

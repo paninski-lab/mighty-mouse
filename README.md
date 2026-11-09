@@ -114,9 +114,8 @@ Both scripts share their combo generation, naming, and `litpose train` command-b
 `mighty_mouse/train/sweep.py` — they only differ in *how* a command gets executed (subprocess loop vs.
 `Job.run`), so there's one place to change if the sweep logic itself needs to change. Because a
 Lightning Job is a fresh remote process with no way to "come back" to it afterward like the local
-loop does, evaluation can't happen in-process there — instead `mighty_mouse/train/sweep.py` is itself
-CLI-invocable (`python -m mighty_mouse.train.sweep --output_dir ... --csv_file ...`) and gets chained onto
-the training command with `&&` for each job.
+loop does, evaluation can't happen in-process there — instead `scripts/evaluation/evaluate_run.py --run ...`
+gets chained onto the training command with `&&` for each job.
 
 **Getting data onto Lightning storage:** each Job is an isolated snapshot of the launching Studio's
 filesystem, and syncing the ~10k individual label/image files in `data/head-fixed_vN` is slow. Instead,
@@ -281,6 +280,7 @@ mighty-mouse/
       train_plan.sh             Mighty Mouse recipe: all-data / dedicated / leave-one-out models, missing ones
                                  trained (see skills/train/train-plan; needs lightning-pose post_sub_lp_delta)
     evaluation/
+      evaluate_run.py           evaluate one trained run on every test set, then delete its checkpoints / scratch files
       eval_suite.py             test-set pixel-error tables of every trunk / dedicated model (see skills/evaluation/eval-suite)
       zeroshot_predict.py       a leave-one-out trunk's predictions on the left-out dataset's train frames
       zeroshot_score.py         leave-one-out zero-shot scores, per keypoint (see skills/evaluation/eval-suite)
@@ -298,9 +298,11 @@ mighty-mouse/
     plots/
       plot_keypoints.py         keypoint overlay visualization
       house_style.py            shared colours, banner, header/footer for overlay videos (skills/evaluation/pose-video)
-      views.py                  camera view of a labeled frame
+      views.py                  camera view of a labeled frame; evenly spaced frames per view
+      overlay.py                frame -> panel coordinates; ground-truth / predicted points of a frame
+      median_frame.py           session median frame and frame-minus-median images
     pretrain/
-      paths.py                  fixed layout inside the `pretrain_dir` directory (paths.yaml's only pretraining entry)
+      layout.py                 fixed layout inside the `pretrain_dir` directory (paths.yaml's only pretraining entry)
       video_list.py             flatten the pretraining videos paths file into videos to process
       embed.py                  frame decoding + frozen-ViT CLS extraction
       kmeans.py                 chunked spherical k-means on GPU
@@ -320,10 +322,16 @@ mighty-mouse/
         ensemble.py             run an ensemble of LP models on a label CSV's images; confidence-thresholded mean
         active_labeling.py      ensemble-disagreement frame selection, stats, merge-back (CLI: scripts/preprocess/active_labeling.py)
     train/
-      sweep.py                  sweep combo/naming/command logic shared by both train_sweep*.py scripts;
-                                 also a standalone CLI (`python -m mighty_mouse.train.sweep`) for evaluation only
+      layout.py                 run-directory layout (<tag>_train/<losses>/.../seed<N>) and the Mighty Mouse
+                                 recipe's identity; also a small CLI used by train_plan.sh
+      sweep.py                  sweep combo/naming/command logic shared by both train_sweep*.py scripts
     evaluation/
       comparison.py             pixel errors over labeled cells (visible == 2), pooled summaries
+      run.py                    evaluate a trained run on every dataset's test set; tidy its directory
+      delivery.py               README front matter of qualitative deliveries + the INDEX.md built from it
+      ensemble_stats.py         ensemble median, the three spread definitions, per-frame / per-keypoint tables
+      qualitative/              the overlay-video renderers: panel.py, compare.py, variance_rows.py
+                                 (logic; the CLIs are scripts/evaluation/qualitative/)
 
   tests/                        pytest suite; mirrors mighty_mouse/ (mighty_mouse/<stage>/b.py ->
                                  tests/<stage>/test_b.py). Run: python -m pytest tests
@@ -350,7 +358,7 @@ poseinterface/
 ```
 
 Model checkpoints (`*.ckpt`) are deleted once evaluation completes — `eval/<dataset>/` is what's kept
-long-term, not the trained weights. This happens in `mighty_mouse.train.evaluate_model`, so it applies
+long-term, not the trained weights. This happens in `mighty_mouse.evaluation.run.clean_run_dir`, so it applies
 whether a run finished locally or on Lightning AI.
 
 ### Adding a new dataset

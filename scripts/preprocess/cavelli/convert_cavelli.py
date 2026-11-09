@@ -21,6 +21,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_of, subject_split
 
@@ -46,7 +47,7 @@ def main():
     src = args.src or raw_dir / "_dlc" / "cavelli"
     dst = args.dst or raw_dir / "cavelli"
 
-    df = pd.read_csv(src / "CollectedData_cavelli.csv", header=[0, 1, 2], index_col=0)
+    df = read_labels_csv(src / "CollectedData_cavelli.csv")
     scorer_in = df.columns[0][0]
     all_kps = list(dict.fromkeys(c[1] for c in df.columns))
     labeled = [kp for kp in all_kps if df[(scorer_in, kp, "x")].notna().any()]
@@ -61,15 +62,16 @@ def main():
     _, test_subjects = subject_split(counts, SEED, TEST_FRACTION)
     is_test = subjects.isin(test_subjects)
 
-    splits = {"CollectedData.csv": out[~is_test], "CollectedData_test.csv": out[is_test]}
+    splits = (("train", "CollectedData.csv", out[~is_test]),
+              ("test", "CollectedData_test.csv", out[is_test]))
     # _raw/cavelli holds hand-edited labels (version 1+); never clobber them.
-    existing = [n for n in splits if (dst / n).exists()]
+    existing = [csv_name for _, csv_name, _ in splits if (dst / csv_name).exists()]
     if existing:
         raise SystemExit(f"refusing to overwrite {existing} in {dst}; pass --dst elsewhere")
     dst.mkdir(parents=True, exist_ok=True)
-    for name, part in splits.items():
-        part.to_csv(dst / name)
-        print(f"{name}: {len(part)} rows")
+    for split_name, csv_name, part in splits:
+        part.to_csv(dst / csv_name)
+        print(f"  {split_name}: {len(part)} frames -> {dst / csv_name}")
     for rel_out, rel_src in zip(out.index, df.index, strict=True):
         (dst / rel_out).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src / rel_src, dst / rel_out)

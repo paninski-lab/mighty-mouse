@@ -1,10 +1,10 @@
-"""Tests for mighty_mouse.pretrain.paths."""
+"""Tests for mighty_mouse.pretrain.layout."""
 
 from pathlib import Path
 
 import pytest
 
-from mighty_mouse.pretrain.paths import (
+from mighty_mouse.pretrain.layout import (
     dedup_dir,
     embeddings_dir,
     pretrain_dir,

@@ -33,25 +33,22 @@ import subprocess
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import yaml
 
+from mighty_mouse.evaluation.delivery import front_matter
+from mighty_mouse.evaluation.qualitative.variance_rows import render_variance_rows
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths, repo_root
-from mighty_mouse.plots.views import view_of
+from mighty_mouse.plots.views import sample_per_view
 
-RENDERER = Path(__file__).with_name("ensemble_variance_rows.py")
 SPLIT_CSV = {"train": "CollectedData.csv", "test": "CollectedData_test.csv"}
 
 
 def spread_per_view(frames: pd.Index, dataset: str, n: int) -> pd.Index:
     """At most n frames per camera view, evenly spaced through `frames` (so across sessions),
     in their original order; same view rule as ensemble_variance_rows.py."""
-    views = pd.Series([view_of(dataset, Path(f).parent.name) for f in frames], index=frames)
-    keep = []
-    for _, view in views.groupby(views, sort=True):
-        keep += list(view.index[np.unique(np.linspace(0, len(view) - 1,
-                                                      min(n, len(view))).astype(int))])
+    keep = {f for fs in sample_per_view(frames, dataset, n).values() for f in fs}
     return frames[frames.isin(keep)]
 
 
@@ -96,13 +93,13 @@ def main() -> None:
     model_dirs = state["rounds"][r]["model_dirs"]
     rdir = active / f"round_{r:02d}"
     caches = [rdir / f"member{i}_{Path(d).name}.csv" for i, d in enumerate(model_dirs)]
-    preds = [pd.read_csv(c, header=[0, 1, 2], index_col=0) for c in caches]
+    preds = [read_labels_csv(c) for c in caches]
 
     trained = pd.read_csv(active / "tolabel_manifest.csv", index_col=0)
     trained = trained[trained["round"] <= r].index
     pool = preds[0].index.difference(trained, sort=False)
     if args.frames in SPLIT_CSV:
-        split = pd.read_csv(raw / SPLIT_CSV[args.frames], header=[0, 1, 2], index_col=0).index
+        split = read_labels_csv(raw / SPLIT_CSV[args.frames]).index
         frames = preds[0].index[preds[0].index.isin(split)]
         n_all = len(frames)
         if args.per_view:
@@ -157,28 +154,26 @@ def main() -> None:
         pred_csvs.append(str(f))
 
     kmap = args.keypoint_map or repo_root() / "configs" / "datasets" / f"{args.dataset}.yaml"
-    cmd = [sys.executable, str(RENDERER), "--preds", *pred_csvs, "--image_dir", str(raw),
-           "--no_gt", "--target", args.dataset, "--subset", subset, "--keypoint_map", str(kmap),
-           "--modes", "ensemble var", "--frames", str(n_frames), "--conf", str(args.conf),
-           "--fps", str(args.fps),
-           "--title", f"{model_tok} (median of {len(preds)})", "--out", str(out / f"{name}.mp4")]
-    if args.include:
-        cmd += ["--include", args.include]
-    if args.median_panel:
-        cmd += ["--median_panel"]
-    subprocess.run(cmd, check=True)
+    render_variance_rows(
+        out / f"{name}.mp4", [Path(f) for f in pred_csvs], raw, args.dataset, subset=subset,
+        keypoint_map=kmap, title=f"{model_tok} (median of {len(preds)})", conf=args.conf,
+        frames=n_frames, fps=args.fps, include=args.include, modes="ensemble var", no_gt=True,
+        median_panel=args.median_panel,
+    )
 
     readme = out / "README.md"
     if not readme.exists():
         readme.write_text(
-            f"---\ntitle: {args.dataset} active pseudo-labeling round {r}, ensemble median\n"
-            f"date: {today}\ndata_version: _raw/{args.dataset} (active round {r}, "
-            f"{state['rounds'][r]['rows']} tolabel rows)\n"
-            f"question: How do the round-{r} models' predictions look on "
-            f"{args.dataset}'s frames?\n"
-            f"models: {model_tok} = {', '.join(Path(d).name for d in model_dirs)}\n"
-            "outputs: see below\nfinding: (to fill after viewing)\n---\n\n"
-            f"# {args.dataset}, active round {r}\n\n"
+            front_matter(
+                title=f"{args.dataset} active pseudo-labeling round {r}, ensemble median",
+                date=str(today),
+                data_version=f"_raw/{args.dataset} (active round {r}, "
+                             f"{state['rounds'][r]['rows']} tolabel rows)",
+                question=f"How do the round-{r} models' predictions look on "
+                         f"{args.dataset}'s frames?",
+                models=f"{model_tok} = {', '.join(Path(d).name for d in model_dirs)}",
+                outputs="see below", finding="(to fill after viewing)")
+            + f"\n# {args.dataset}, active round {r}\n\n"
             f"Dot = median of the {len(preds)} models, cross = +-1 SD across them (true px), "
             f"drawn if any model conf >= {args.conf}, ring if their mean conf is below it. "
             "No ground truth (`_nogt`). Predictions are "

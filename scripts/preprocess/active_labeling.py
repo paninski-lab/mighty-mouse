@@ -57,8 +57,8 @@ from mighty_mouse.preprocess.labeling.active_labeling import (
     read_frame_ids,
     round_stats,
     sample_per_session,
-    select_frames,
     sync_tolabel,
+    top_frames,
 )
 from mighty_mouse.preprocess.labeling.ensemble import predict
 
@@ -354,7 +354,7 @@ def cmd_select(args) -> None:
     if state.get("exclude_files"):
         print(f"excluding {n_pool - len(scores)} pool frames reserved by {state['exclude_files']} "
               f"({len(excluded)} listed)")
-    chosen = order_by_session(select_frames(scores, m), originals.index)
+    chosen = order_by_session(top_frames(scores, m), originals.index)
     pool_sessions = len({session_name(i) for i in pool.index})
     rows = prefill_rows(
         originals.loc[chosen], preds, state["keypoints"], args.prefill_threshold, args.prefill_agg

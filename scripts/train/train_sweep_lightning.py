@@ -13,7 +13,7 @@ are chained into one shell command per job:
     test -d <data_dir> || tar -xf <data_dir>.tar -C <data_dir's parent>
     && mkdir -p <data_dir>/videos
     && litpose train ...
-    && python -m mighty_mouse.train.sweep --output_dir ... --csv_file ...
+    && python scripts/evaluation/evaluate_run.py --run ...
 
 Each Job is an isolated snapshot of the launching Studio's own filesystem, not
 a shared mount multiple jobs write into — so every job independently checking
@@ -60,6 +60,7 @@ import shlex
 import time
 from pathlib import Path
 
+from mighty_mouse.paths import load_paths
 from mighty_mouse.train.sweep import (
     build_combos,
     check_lightning_pose,
@@ -135,26 +136,32 @@ def main():
     temperatures = [t for t in args.sampling_temperatures.split(";") if t]
     extra        = [o for o in args.extra_overrides.split(";") if o]
 
+    paths       = load_paths()
+    results_dir = Path(paths["results_dir"])
+    data_dir    = Path(paths["data_dir"])
+
     combos = build_combos(csv_files, backbones, train_frames, seeds, temperatures)
     print(f"Total jobs: {len(combos)}")
 
     if args.skip_existing:
-        combos = [c for c in combos if not make_output_dir(*c[:4], losses, c[4]).exists()]
+        combos = [c for c in combos
+                  if not make_output_dir(results_dir, *c[:4], losses, c[4]).exists()]
         print(f"After skipping existing: {len(combos)} remaining")
 
     # Identical for every job (depends only on data_dir, not the combo) — computed once,
     # but still has to run inside each job since it acts on that job's own filesystem.
-    extract_cmd = make_extract_command()
+    extract_cmd = make_extract_command(data_dir)
 
     jobs_spec = []
     for csv_file, backbone, train_frames_n, seed, temperature in combos:
-        output_dir = make_output_dir(csv_file, backbone, train_frames_n, seed, losses, temperature)
+        output_dir = make_output_dir(results_dir, csv_file, backbone, train_frames_n, seed, losses,
+                                     temperature)
         name       = make_job_name(csv_file, backbone, train_frames_n, seed, losses, temperature)
         train_cmd  = make_train_command(
-            csv_file, backbone, train_frames_n, seed, losses, output_dir, args.debug,
-            temperature, config_file=args.config_file, extra_overrides=extra,
+            csv_file, backbone, train_frames_n, seed, losses, output_dir, data_dir,
+            args.debug, temperature, config_file=args.config_file, extra_overrides=extra,
         )
-        eval_cmd   = make_eval_command(output_dir, csv_file)
+        eval_cmd   = make_eval_command(output_dir)
         if args.keep_checkpoints:
             eval_cmd.append("--keep_checkpoints")
         # shlex.join: overrides such as sampling_temperature='inf' carry shell quotes

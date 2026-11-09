@@ -31,6 +31,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_split
 
@@ -67,7 +68,7 @@ def main() -> None:
         assert len(csvs) == 1, (
             f"expected 1 CollectedData_*.csv in {session_dir}, found {len(csvs)}"
         )
-        dfs.append(pd.read_csv(csvs[0], header=[0, 1, 2], index_col=0))
+        dfs.append(read_labels_csv(csvs[0]))
     for df in dfs[1:]:
         assert df.columns.equals(dfs[0].columns), "keypoint schemas differ across sessions"
     combined = pd.concat(dfs)
@@ -94,12 +95,10 @@ def main() -> None:
     print(f"  subject frame counts: {dict(sorted(counts.items()))}")
 
     test_mask = subject_of_row.isin(test_subjects)
-    splits = {
-        "CollectedData.csv": combined[~test_mask],
-        "CollectedData_test.csv": combined[test_mask],
-    }
-    for name, df in splits.items():
-        print(f"  {name}: {len(df)} frames")
+    splits = (("train", "CollectedData.csv", combined[~test_mask]),
+              ("test", "CollectedData_test.csv", combined[test_mask]))
+    for split_name, csv_name, split_df in splits:
+        print(f"  {split_name}: {len(split_df)} frames -> {out_dir / csv_name}")
     if args.dry_run:
         return
 
@@ -107,8 +106,8 @@ def main() -> None:
         dst = out_dir / df
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src_dir / df, dst)
-    for name, df in splits.items():
-        df.to_csv(out_dir / name)
+    for _, csv_name, split_df in splits:
+        split_df.to_csv(out_dir / csv_name)
 
     (out_dir / "project.yaml").write_text(
         yaml.safe_dump({"keypoint_names": keypoints, "schema_version": 1, "view_names": []},

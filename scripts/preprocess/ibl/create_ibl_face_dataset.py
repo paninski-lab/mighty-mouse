@@ -29,19 +29,20 @@ Run in iblvideo2 conda env:
 """
 
 import argparse
-import shutil
 from pathlib import Path
 
 import cv2
 import numpy as np
 import pandas as pd
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
+from mighty_mouse.preprocess.convert import copy_images
 
 _paths = load_paths()
 RAW_DIR = Path(_paths["raw_dir"])
 
-IBL_PAW_DIR  = RAW_DIR / "ibl-paw"
+IBL_PAW_DIR  = RAW_DIR / "_dlc" / "ibl-paw"
 IBL_DIR = RAW_DIR / "ibl"
 SESSION_VIDS = IBL_DIR / "session_videos"
 
@@ -64,7 +65,7 @@ SCORER     = "All"
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def load_paw_csv(path: Path) -> pd.DataFrame:
-    df = pd.read_csv(path, header=[0, 1, 2], index_col=0)
+    df = read_labels_csv(path)
     return df[~df.index.duplicated(keep="first")]
 
 
@@ -166,21 +167,6 @@ def compute_pupil_center(face_preds: pd.DataFrame) -> tuple[np.ndarray, np.ndarr
     cx = np.nanmedian(xs, axis=1)
     cy = np.nanmedian(ys, axis=1)
     return cx, cy
-
-
-def copy_images() -> None:
-    src = IBL_PAW_DIR / "labeled-data"
-    dst = IBL_DIR / "labeled-data"
-    n_copied = n_skip = 0
-    for src_f in src.rglob("*.png"):
-        dst_f = dst / src_f.relative_to(src)
-        if dst_f.exists():
-            n_skip += 1
-            continue
-        dst_f.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src_f, dst_f)
-        n_copied += 1
-    print(f"    {n_copied} copied, {n_skip} already present")
 
 
 # ── main ──────────────────────────────────────────────────────────────────────
@@ -295,6 +281,7 @@ def main(dry_run=False, skip_video=False, skip_pipeline=False):
         ("test",  "CollectedData_test.csv"),
     ]
 
+    indexes = []
     for split, csv_name in splits:
         print(f"\n-- {split} ({csv_name}) " + "-" * 50)
         result = process_split(
@@ -306,6 +293,7 @@ def main(dry_run=False, skip_video=False, skip_pipeline=False):
 
         out_csv = IBL_DIR / csv_name
         result.to_csv(out_csv)
+        indexes.append(result.index)
         n_pupil  = int((~result[(SCORER, "pupil_center_r", "x")].isna()).sum())
         n_nose   = int((~result[(SCORER, "nose_tip",       "x")].isna()).sum())
         n_tongue = int((~result[(SCORER, "tongue_end_r",   "x")].isna()).sum())
@@ -314,7 +302,8 @@ def main(dry_run=False, skip_video=False, skip_pipeline=False):
 
     if not dry_run:
         print("\n-- copying images " + "-" * 45)
-        copy_images()
+        n_copied = copy_images(indexes[0].append(indexes[1:]), IBL_PAW_DIR, IBL_DIR)
+        print(f"    {n_copied} copied, {sum(map(len, indexes)) - n_copied} already present")
 
     print("\nDone.")
     if not dry_run:

@@ -2,7 +2,7 @@
 
 Generates pseudo-labels for face keypoints (pupil, nose, tongue) by running the
 [iblvideo](https://github.com/int-brain-lab/iblvideo) Lightning Pose pipeline on
-sessions from `_raw/ibl-paw`, then merges them with the existing paw labels.
+sessions from `_raw/_dlc/ibl-paw`, then merges them with the existing paw labels.
 
 NOTE: after creating the pseudo-labels, all ~10k frames were reviewed and adjusted as necessary
 in the Lightning Pose app (July 2026). Therefore the provided `ibl` labels are no longer
@@ -18,10 +18,10 @@ short video is built for each session before running the pipeline.
 
 ## Pipeline steps
 
-For each session in `_raw/ibl-paw/`:
+For each session in `_raw/_dlc/ibl-paw/`:
 
 1. **Build session video** — for every labeled frame, load 2 context frames before
-   and 2 after (5-frame chunk) from `_raw/ibl-paw/labeled-data/<session>/`. Frames
+   and 2 after (5-frame chunk) from `_raw/_dlc/ibl-paw/labeled-data/<session>/`. Frames
    are upscaled 4× (320×256 → 1280×1024) to match iblvideo's LEFT_VIDEO spec.
    Written to `_raw/ibl/session_videos/{split}/{session}/videos/_iblrig_leftCamera.raw.mp4`.
 
@@ -41,7 +41,7 @@ For each session in `_raw/ibl-paw/`:
    (`pupil_top_r`, `pupil_right_r`, `pupil_bottom_r`, `pupil_left_r`).
 
 6. **Merge** — face pseudo-labels are combined with original paw labels (`paw_l`,
-   `paw_r`) from `_raw/ibl-paw`.
+   `paw_r`) from `_raw/_dlc/ibl-paw`.
 
 Output keypoints: `paw_l`, `paw_r`, `pupil_center_r`, `nose_tip`, `tongue_end_r`, `tongue_end_l`.
 
@@ -49,7 +49,7 @@ Output keypoints: `paw_l`, `paw_r`, `pupil_center_r`, `nose_tip`, `tongue_end_r`
 
 | Script | Env | Purpose |
 |---|---|---|
-| `create_ibl_face_dataset.py` | `iblvideo2` | Run full pipeline; writes CSVs + copies images |
+| `create_ibl_face_dataset.py` | `iblvideo2` | Run full pipeline; writes CSVs + copies the labeled images (not the context frames) |
 | `plot_ibl_face_check.py` | `iblvideo2` | Render annotated check images after pipeline |
 
 ## Usage

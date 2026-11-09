@@ -4,7 +4,7 @@ Standard evaluation tables for the Mighty Mouse recipe's models of a corpus vers
 
 Discovers the finished runs under <results_dir>/trunks* and <results_dir>/dedicated*
 (scripts/train/train_plan.sh layout), or takes explicit --run name=path pairs, and from the
-pixel_error.csv that evaluate_model writes for every dataset's test set produces:
+pixel_error.csv that evaluate_run writes for every dataset's test set produces:
 
   summary.csv        one row per (run, dataset): pooled median / mean pixel error over labeled
                      keypoints (visible == 2; tongue and lips excluded), frames, keypoints
@@ -30,9 +30,9 @@ import pandas as pd
 
 from mighty_mouse.datasets import ALL_DATASETS, SHORT_NAMES
 from mighty_mouse.evaluation.comparison import ALWAYS_EXCLUDED
+from mighty_mouse.evaluation.delivery import front_matter_lines
 from mighty_mouse.paths import load_paths
-
-LEAF = "supervised/sampling-T2/tf1/vits_dinov3"
+from mighty_mouse.train.layout import TRAIN_SUFFIX, recipe_seed_dirs, tag_of_train_name
 
 
 def run_label(area: str, tag: str) -> str:
@@ -55,10 +55,11 @@ def discover(results_dir: Path) -> dict[str, Path]:
     """Every evaluated run under results_dir/trunks*/ and results_dir/dedicated*/."""
     runs = {}
     for area_dir in sorted([*results_dir.glob("trunks*"), *results_dir.glob("dedicated*")]):
-        for tag_dir in sorted(area_dir.glob("*_train")):
-            for seed_dir in sorted(tag_dir.glob(f"{LEAF}/seed*")):
+        for tag_dir in sorted(area_dir.glob(f"*{TRAIN_SUFFIX}")):
+            tag = tag_of_train_name(tag_dir.name)
+            for seed_dir in recipe_seed_dirs(area_dir, tag):
                 if (seed_dir / "eval").is_dir():
-                    name = run_label(area_dir.name, tag_dir.name[: -len("_train")])
+                    name = run_label(area_dir.name, tag)
                     seed = f"#{seed_dir.name}" if seed_dir.name != "seed0" else ""
                     runs[name + seed] = seed_dir
     return runs
@@ -160,11 +161,12 @@ def main() -> None:
     sections = [line for ds in ALL_DATASETS for line in keypoint_section(ds, runs, S, K)]
     today = date.today()
     lines = [
-        "---", f"title: Evaluation suite {today}", f"date: {today}",
-        f"data_version: {data_version}",
-        "question: How do the recipe's models score on every dataset's test set?",
-        f"models: {', '.join(runs)}", "outputs: summary.csv, per_keypoint.csv",
-        "finding: (fill in after reading the table)", "---", "",
+        *front_matter_lines(
+            title=f"Evaluation suite {today}", date=str(today), data_version=str(data_version),
+            question="How do the recipe's models score on every dataset's test set?",
+            models=", ".join(runs), outputs="summary.csv, per_keypoint.csv",
+            finding="(fill in after reading the table)"),
+        "",
         "# Evaluation suite", "",
         "Median pixel error over labeled keypoints (visible == 2; tongue and lips excluded), each",
         "run scored on every dataset's test set. A dedicated model scored on another dataset only",

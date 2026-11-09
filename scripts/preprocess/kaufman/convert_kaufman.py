@@ -35,6 +35,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 
 TEST_SUBJECTS = {"b8sSM7", "b8sSM10"}
@@ -76,7 +77,7 @@ def main() -> None:
         assert len(csvs) == 1, (
             f"expected exactly 1 CollectedData_*.csv in {session_dir}, found {len(csvs)}"
         )
-        df = pd.read_csv(csvs[0], header=[0, 1, 2], index_col=0)
+        df = read_labels_csv(csvs[0])
         dfs.append(df)
 
     combined = pd.concat(dfs)
@@ -109,11 +110,7 @@ def main() -> None:
         split_df = combined.loc[timestamp_of_row.isin(split_timestamps)]
         csv_name = "CollectedData.csv" if split_name == "train" else "CollectedData_test.csv"
         split_df.to_csv(out_dir / csv_name)
-        n_sessions = session_of_row[timestamp_of_row.isin(split_timestamps)].nunique()
-        print(
-            f"  {split_name}: {len(split_df)} frames, {n_sessions} session dirs "
-            f"-> {out_dir / csv_name}"
-        )
+        print(f"  {split_name}: {len(split_df)} frames -> {out_dir / csv_name}")
 
     print("\nDone.")
 
