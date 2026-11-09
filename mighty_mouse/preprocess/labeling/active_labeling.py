@@ -160,7 +160,7 @@ def frame_scores(spread: pd.DataFrame) -> pd.Series:
     return spread.mean(axis=1)
 
 
-def select_frames(scores: pd.Series, m: int | None) -> pd.Index:
+def top_frames(scores: pd.Series, m: int | None) -> pd.Index:
     """The `m` highest-scoring frames, best first; NaN-scored (ineligible) frames never
     qualify. `m=None` returns every frame, NaN-scored ones last."""
     ranked = scores.sort_values(ascending=False, kind="stable", na_position="last")

@@ -107,9 +107,9 @@ and `mighty_mouse/preprocess/labeling/{active_labeling,ensemble}.py`.
 - **Pretrain:** `output_path` is defined in both `mighty_mouse/pretrain/dedup.py` (`.npz`) and
   `mighty_mouse/pretrain/embed.py` (`.npy`) and differs only in the extension. Both belong with
   the rest of the layout in `mighty_mouse/pretrain/layout.py`.
-- **`select_frames`** exists in `mighty_mouse/pretrain/dedup.py` and
-  `mighty_mouse/preprocess/labeling/active_labeling.py`. They are different algorithms with the
-  same name; rename one rather than merge.
+- **`select_frames`** existed in `mighty_mouse/pretrain/dedup.py` and
+  `mighty_mouse/preprocess/labeling/active_labeling.py` with different algorithms. Done: renamed
+  to `dedup_video` and `top_frames` respectively.
 
 ## Suggested order
 

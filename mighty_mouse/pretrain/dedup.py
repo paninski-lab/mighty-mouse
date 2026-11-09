@@ -119,7 +119,7 @@ def stored_method(stats: dict) -> str:
     return stats.get("method") or ("whole" if stats["n_iter"] == 0 else "flat")
 
 
-def select_frames(
+def dedup_video(
     embeddings: np.ndarray,
     k: int = DEFAULT_K,
     seed: int = 0,

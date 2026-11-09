@@ -19,8 +19,8 @@ from mighty_mouse.preprocess.labeling.active_labeling import (
     read_frame_ids,
     round_stats,
     sample_per_session,
-    select_frames,
     sync_tolabel,
+    top_frames,
 )
 from tests.preprocess.labeling.conftest import EARS, label_frame, pred_frame
 
@@ -203,19 +203,19 @@ class TestFrameScores:
         assert out.iloc[0] == 3.0 and out.iloc[1] == 6.0 and np.isnan(out.iloc[2])
 
 
-class TestSelectFrames:
-    """Test the function select_frames."""
+class TestTopFrames:
+    """Test the function top_frames."""
 
-    def test_select_frames_top_m_skips_nan(self):
+    def test_top_frames_top_m_skips_nan(self):
         scores = pd.Series([1.0, np.nan, 5.0, 3.0], index=list("abcd"))
 
-        assert list(select_frames(scores, 2)) == ["c", "d"]
-        assert list(select_frames(scores, 10)) == ["c", "d", "a"]
+        assert list(top_frames(scores, 2)) == ["c", "d"]
+        assert list(top_frames(scores, 10)) == ["c", "d", "a"]
 
-    def test_select_frames_all_puts_nan_last(self):
+    def test_top_frames_all_puts_nan_last(self):
         scores = pd.Series([1.0, np.nan, 5.0], index=list("abc"))
 
-        assert list(select_frames(scores, None)) == ["c", "a", "b"]
+        assert list(top_frames(scores, None)) == ["c", "a", "b"]
 
 
 class TestReadFrameIds:
@@ -240,7 +240,7 @@ class TestExcludeFrames:
         result = exclude_frames(scores, pd.Index(["b", "z"]))
 
         assert list(result.index) == ["a", "c"]
-        assert list(select_frames(result, 1)) == ["c"]
+        assert list(top_frames(result, 1)) == ["c"]
 
     def test_exclude_frames_nothing_listed(self):
         scores = pd.Series([1.0, np.nan], index=list("ab"))
