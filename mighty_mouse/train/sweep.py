@@ -39,11 +39,6 @@ from mighty_mouse.train.layout import (
     temperature_tag,
 )
 
-_paths      = load_paths()
-DATA_DIR    = Path(_paths["data_dir"])
-RESULTS_DIR = Path(_paths["results_dir"])
-CONFIG_FILE = repo_root() / "configs" / "model.yaml"
-
 # Every model is evaluated against each dataset's test CSV. Pixel error is NaN
 # for keypoints absent from a given dataset; the plotting script handles filtering.
 EVAL_DATASETS = ALL_DATASETS
@@ -67,9 +62,11 @@ def infer_csv_file(output_dir: Path) -> str:
     return f"CollectedData_{parse_run_dir(output_dir)['train_name']}.csv"
 
 
-def make_output_dir(csv_file, backbone, train_frames, seed, losses, temperature=None) -> Path:
-    return run_dir(RESULTS_DIR, csv_stem(csv_file), losses, temperature, train_frames, backbone,
-                   seed)
+def make_output_dir(
+    root: Path, csv_file, backbone, train_frames, seed, losses, temperature=None,
+) -> Path:
+    """Run directory for one sweep combo under `root` (the results_dir or an --output_root)."""
+    return run_dir(root, csv_stem(csv_file), losses, temperature, train_frames, backbone, seed)
 
 
 def make_job_name(csv_file, backbone, train_frames, seed, losses, temperature=None) -> str:
@@ -148,21 +145,22 @@ def check_lightning_pose() -> None:
 # ── command building ─────────────────────────────────────────────────────────
 
 def make_train_command(
-    csv_file, backbone, train_frames, seed, losses, output_dir, debug=False,
+    csv_file, backbone, train_frames, seed, losses, output_dir, data_dir, debug=False,
     temperature=None, config_file=None, extra_overrides=None,
 ) -> list[str]:
     """Build the `litpose train ...` argv for one sweep combo.
 
     A non-stock temperature, or a config with per-dataset zoom, passes ALL_DATASETS as
     data.dataset_names (both look up each frame's dataset); both need lightning-pose LP_BRANCH.
-    ``config_file`` replaces configs/model.yaml; ``extra_overrides`` (Hydra strings) are
+    ``data_dir`` is the corpus directory holding the CSVs and labeled-data/. ``config_file``
+    replaces configs/model.yaml; ``extra_overrides`` (Hydra strings) are
     appended last, e.g. ``["+model.head_hidden_channels=256"]``.
     """
     lr = 5e-5 if "vit" in backbone else 1e-3
     losses_hydra = f"[{','.join(losses)}]"
 
     overrides = [
-        f"data.data_dir={DATA_DIR}",
+        f"data.data_dir={data_dir}",
         f"data.csv_file={csv_file}",
         f"model.backbone={backbone}",
         f"model.losses_to_use={losses_hydra}",
@@ -202,7 +200,7 @@ def make_train_command(
     overrides += list(extra_overrides or [])
 
     return (
-        ["litpose", "train", str(config_file or CONFIG_FILE),
+        ["litpose", "train", str(config_file or repo_root() / "configs" / "model.yaml"),
          "--output_dir", str(output_dir),
          "--overrides"] + overrides
     )
@@ -218,9 +216,9 @@ def make_eval_command(output_dir, csv_file) -> list[str]:
     ]
 
 
-def make_extract_command() -> str:
-    """Shell snippet that extracts DATA_DIR from a sibling `.tar` archive if
-    DATA_DIR doesn't already exist, meant to run once at the start of each
+def make_extract_command(data_dir: Path) -> str:
+    """Shell snippet that extracts `data_dir` from a sibling `.tar` archive if
+    it doesn't already exist, meant to run once at the start of each
     Lightning job (chained before make_train_command's output with `&&`).
 
     Each Lightning Job is an isolated snapshot of the launching Studio's own
@@ -229,7 +227,7 @@ def make_extract_command() -> str:
     to guard against here. Every job independently checking "does this exist
     yet" and extracting its own local copy if not is safe to duplicate as-is.
 
-    Also ensures DATA_DIR/videos exists: litpose's config always points
+    Also ensures data_dir/videos exists: litpose's config always points
     `video_dir` at this path even though the head-fixed dataset trains from
     already-extracted frames, and the archive doesn't necessarily contain an
     entry for it if it was empty when tarred (`mkdir -p` after the
@@ -238,20 +236,21 @@ def make_extract_command() -> str:
 
     Returns a shell string (not an argv list, unlike the other make_*_command
     functions) since it needs `||` — only meaningful for Lightning jobs; the
-    local sequential script never calls this because DATA_DIR is expected to
+    local sequential script never calls this because data_dir is expected to
     already exist on disk for local runs.
     """
-    archive = f"{DATA_DIR}.tar"
+    data_dir = Path(data_dir)
+    archive = f"{data_dir}.tar"
     return (
-        f'test -d "{DATA_DIR}" || tar -xf "{archive}" -C "{DATA_DIR.parent}"'
-        f' && mkdir -p "{DATA_DIR / "videos"}"'
+        f'test -d "{data_dir}" || tar -xf "{archive}" -C "{data_dir.parent}"'
+        f' && mkdir -p "{data_dir / "videos"}"'
     )
 
 
 # ── evaluation ────────────────────────────────────────────────────────────────
 
 def evaluate_model(
-    output_dir: Path, csv_file: str, keep_checkpoints: bool = False,
+    output_dir: Path, csv_file: str, data_dir: Path, keep_checkpoints: bool = False,
     datasets: list[str] | None = None,
 ) -> None:
     """Evaluate a trained model against every per-dataset test CSV, then clean
@@ -264,19 +263,20 @@ def evaluate_model(
     left out, see mighty_mouse/evaluation/comparison.py); comparison_metrics.json pools
     them. keep_checkpoints=True is needed for any model used after evaluation
     (zero-shot predictions, fine-tuning). datasets: evaluate only these test
-    sets (default: every dataset in ALL_DATASETS)."""
+    sets (default: every dataset in ALL_DATASETS). data_dir: corpus directory with the
+    per-dataset test CSVs and labeled-data/."""
     from lightning_pose.api import Model
     from PIL import Image
 
     from mighty_mouse.evaluation.comparison import comparison_summary, visible_errors
 
-    output_dir = Path(output_dir)
+    output_dir, data_dir = Path(output_dir), Path(data_dir)
 
     print("  Loading model...")
     model = Model.from_dir(output_dir)
 
     for eval_name in (datasets or EVAL_DATASETS):
-        test_csv = DATA_DIR / f"CollectedData_{eval_name}_test.csv"
+        test_csv = data_dir / f"CollectedData_{eval_name}_test.csv"
 
         if not test_csv.exists():
             print(f"  WARNING: {test_csv} not found — skipping {eval_name} eval")
@@ -285,7 +285,7 @@ def evaluate_model(
         print(f"  Predicting on {eval_name} test set ({test_csv.name})...")
         result = model.predict_on_label_csv(
             csv_file=test_csv,
-            data_dir=DATA_DIR,
+            data_dir=data_dir,
             compute_metrics=False,
         )
         preds_df = result.predictions
@@ -298,7 +298,7 @@ def evaluate_model(
         preds_df = preds_df.loc[labels_df.index]
         diagonals = []
         for name in labels_df.index:
-            with Image.open(DATA_DIR / name) as image:
+            with Image.open(data_dir / name) as image:
                 diagonals.append(float(np.linalg.norm(image.size)))
         summary = comparison_summary(error_df, np.asarray(diagonals))
 
@@ -347,6 +347,10 @@ def _main():
              "Inferred from output_dir's path structure if omitted.",
     )
     parser.add_argument(
+        "--data_dir", default=None, type=Path,
+        help="Corpus directory with the test CSVs (default: paths.yaml data_dir).",
+    )
+    parser.add_argument(
         "--keep_checkpoints", action="store_true",
         help="Keep *.ckpt files after evaluation (needed for zero-shot predictions and "
              "fine-tuning).",
@@ -360,7 +364,8 @@ def _main():
     datasets = [d for d in args.datasets.split(",") if d] if args.datasets else None
     print(f"output_dir: {args.output_dir}")
     print(f"csv_file:   {csv_file}")
-    evaluate_model(args.output_dir, csv_file, keep_checkpoints=args.keep_checkpoints,
+    data_dir = args.data_dir or Path(load_paths()["data_dir"])
+    evaluate_model(args.output_dir, csv_file, data_dir, keep_checkpoints=args.keep_checkpoints,
                    datasets=datasets)
 
 

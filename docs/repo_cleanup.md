@@ -63,10 +63,10 @@ and `mighty_mouse/preprocess/labeling/{active_labeling,ensemble}.py`.
 
 > **Status:** the results-directory layout now has one owner, `mighty_mouse/train/layout.py`
 > (`run_dir`, `parse_run_dir`, `recipe_run_dir`, `RECIPE`), used by `sweep.py`, `eval_suite.py`,
-> `zeroshot_score.py` and, through `python -m mighty_mouse.train.layout`, `train_plan.sh`. Still open:
-> the import-time `load_paths()` / `RESULTS_DIR` / `DATA_DIR` in `sweep.py` (next step), the
-> duplicated aggregation in the two eval scripts, the duplicated sweep arguments, and moving
-> `evaluate_model` under `evaluation/`.
+> `zeroshot_score.py` and, through `python -m mighty_mouse.train.layout`, `train_plan.sh`.
+> `sweep.py` no longer reads `paths.yaml` at import: `results_dir` / `data_dir` are passed in by the
+> two sweep scripts. Still open: the duplicated aggregation in the two eval scripts, the duplicated
+> sweep arguments, and moving `evaluate_model` under `evaluation/`.
 
 - **Import-time work.** `mighty_mouse/train/sweep.py` (lines 35-38) calls `load_paths()` at import
   and defines `DATA_DIR` / `RESULTS_DIR` as module constants. This breaks the "no work at import

@@ -8,17 +8,16 @@ from unittest.mock import patch
 
 import pytest
 
+from mighty_mouse.paths import repo_root
+
+DATA_DIR = Path("/data/corpus")
+RESULTS_DIR = Path("/results")
+
 
 @pytest.fixture(scope="module")
 def train():
-    """mighty_mouse.train.sweep imported against a fake paths.yaml (it reads paths at import)."""
-    sys.modules.pop("mighty_mouse.train.sweep", None)
-    paths = {"data_dir": "/data/corpus", "results_dir": "/results"}
-    with patch("mighty_mouse.paths.load_paths", return_value=paths), \
-         patch("mighty_mouse.paths.repo_root", return_value=Path(__file__).parents[2]):
-        module = importlib.import_module("mighty_mouse.train.sweep")
-    yield module
-    sys.modules.pop("mighty_mouse.train.sweep", None)
+    """mighty_mouse.train.sweep (needs no paths.yaml)."""
+    return importlib.import_module("mighty_mouse.train.sweep")
 
 
 def fake_lightning_pose(branch: bool) -> dict[str, types.ModuleType]:
@@ -50,12 +49,13 @@ class TestMakeOutputDir:
     """Test the function make_output_dir."""
 
     def test_make_output_dir_stock_layout_unchanged(self, train):
-        out = train.make_output_dir("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [])
+        out = train.make_output_dir(RESULTS_DIR, "CollectedData_ibl_train.csv", "vits_dinov3", "1",
+                                    "0", [])
         assert out == Path("/results/ibl_train/supervised/tf1/vits_dinov3/seed0")
 
     def test_make_output_dir_temperature_component(self, train):
-        out = train.make_output_dir("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
-                                    "2")
+        out = train.make_output_dir(RESULTS_DIR, "CollectedData_ibl_train.csv", "vits_dinov3", "1",
+                                    "0", [], "2")
         assert out == Path("/results/ibl_train/supervised/sampling-T2/tf1/vits_dinov3/seed0")
 
 
@@ -117,13 +117,14 @@ class TestMakeTrainCommand:
 
     def test_make_train_command_stock(self, train):
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
-                                       Path("/out"))
-        assert cmd[:3] == ["litpose", "train", str(train.CONFIG_FILE)]
+                                       Path("/out"), DATA_DIR)
+        assert cmd[:3] == ["litpose", "train", str(repo_root() / "configs" / "model.yaml")]
+        assert f"data.data_dir={DATA_DIR}" in self.overrides(cmd)
         assert not any("dataset_names" in o or "sampling" in o for o in self.overrides(cmd))
 
     def test_make_train_command_temperature(self, train):
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
-                                       Path("/out"), temperature="2")
+                                       Path("/out"), DATA_DIR, temperature="2")
         ov = self.overrides(cmd)
         assert f"++data.dataset_names=[{','.join(train.EVAL_DATASETS)}]" in ov
         assert "++training.sampling_temperature='2'" in ov
@@ -132,13 +133,24 @@ class TestMakeTrainCommand:
         cfg = tmp_path / "zoom.yaml"
         cfg.write_text("training:\n  imgaug_per_dataset_zoom:\n    ibl: [-0.4, 0.15]\n")
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
-                                       Path("/out"), config_file=cfg)
+                                       Path("/out"), DATA_DIR, config_file=cfg)
         assert cmd[2] == str(cfg)
         assert any(o.startswith("++data.dataset_names=") for o in self.overrides(cmd))
 
     def test_make_train_command_extra_overrides_last(self, train):
         extra = ["+model.head_hidden_channels=256", "training.max_steps=10"]
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
-                                       Path("/out"), debug=True, extra_overrides=extra)
+                                       Path("/out"), DATA_DIR, debug=True, extra_overrides=extra)
         assert self.overrides(cmd)[-2:] == extra
         assert "training.check_val_every_n_epoch=null" in self.overrides(cmd)
+
+
+class TestMakeExtractCommand:
+    """Test the function make_extract_command."""
+
+    def test_make_extract_command_extracts_sibling_tar(self, train):
+        cmd = train.make_extract_command(DATA_DIR)
+        assert cmd == (
+            'test -d "/data/corpus" || tar -xf "/data/corpus.tar" -C "/data"'
+            ' && mkdir -p "/data/corpus/videos"'
+        )

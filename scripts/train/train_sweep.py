@@ -48,8 +48,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from mighty_mouse.paths import load_paths
 from mighty_mouse.train.sweep import (
-    RESULTS_DIR,
     build_combos,
     check_lightning_pose,
     csv_stem,
@@ -130,12 +130,15 @@ def main():
     temperatures = [t for t in args.sampling_temperatures.split(";") if t]
     extra        = [o for o in args.extra_overrides.split(";") if o]
 
+    paths       = load_paths()
+    results_dir = Path(paths["results_dir"])
+    data_dir    = Path(paths["data_dir"])
+
     combos = build_combos(csv_files, backbones, train_frames, seeds, temperatures)
     print(f"Total jobs: {len(combos)}")
 
     def output_for(combo) -> Path:
-        output = make_output_dir(*combo[:4], losses, combo[4])
-        return args.output_root / output.relative_to(RESULTS_DIR) if args.output_root else output
+        return make_output_dir(args.output_root or results_dir, *combo[:4], losses, combo[4])
 
     if args.skip_existing and not args.eval_only:
         combos = [
@@ -162,8 +165,8 @@ def main():
 
         if not args.eval_only:
             cmd = make_train_command(
-                csv_file, backbone, train_frames_n, seed, losses, output_dir, args.debug,
-                temperature, config_file=args.config_file, extra_overrides=extra,
+                csv_file, backbone, train_frames_n, seed, losses, output_dir, data_dir,
+                args.debug, temperature, config_file=args.config_file, extra_overrides=extra,
             )
             print("   " + " ".join(cmd))
 
@@ -184,7 +187,8 @@ def main():
                 failures.append(f"{label} (no output dir)")
                 continue
             try:
-                evaluate_model(output_dir, csv_file, keep_checkpoints=args.keep_checkpoints)
+                evaluate_model(output_dir, csv_file, data_dir,
+                               keep_checkpoints=args.keep_checkpoints)
             except Exception as e:
                 print(f"  ERROR: evaluation failed: {e}")
                 failures.append(f"{label} (evaluation: {e})")
