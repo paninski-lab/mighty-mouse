@@ -95,12 +95,10 @@ def main() -> None:
     print(f"  subject frame counts: {dict(sorted(counts.items()))}")
 
     test_mask = subject_of_row.isin(test_subjects)
-    splits = {
-        "CollectedData.csv": combined[~test_mask],
-        "CollectedData_test.csv": combined[test_mask],
-    }
-    for name, df in splits.items():
-        print(f"  {name}: {len(df)} frames")
+    splits = (("train", "CollectedData.csv", combined[~test_mask]),
+              ("test", "CollectedData_test.csv", combined[test_mask]))
+    for split_name, csv_name, split_df in splits:
+        print(f"  {split_name}: {len(split_df)} frames -> {out_dir / csv_name}")
     if args.dry_run:
         return
 
@@ -108,8 +106,8 @@ def main() -> None:
         dst = out_dir / df
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src_dir / df, dst)
-    for name, df in splits.items():
-        df.to_csv(out_dir / name)
+    for _, csv_name, split_df in splits:
+        split_df.to_csv(out_dir / csv_name)
 
     (out_dir / "project.yaml").write_text(
         yaml.safe_dump({"keypoint_names": keypoints, "schema_version": 1, "view_names": []},

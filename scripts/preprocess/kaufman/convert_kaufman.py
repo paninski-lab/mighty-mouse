@@ -110,11 +110,7 @@ def main() -> None:
         split_df = combined.loc[timestamp_of_row.isin(split_timestamps)]
         csv_name = "CollectedData.csv" if split_name == "train" else "CollectedData_test.csv"
         split_df.to_csv(out_dir / csv_name)
-        n_sessions = session_of_row[timestamp_of_row.isin(split_timestamps)].nunique()
-        print(
-            f"  {split_name}: {len(split_df)} frames, {n_sessions} session dirs "
-            f"-> {out_dir / csv_name}"
-        )
+        print(f"  {split_name}: {len(split_df)} frames -> {out_dir / csv_name}")
 
     print("\nDone.")
 

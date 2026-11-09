@@ -14,8 +14,6 @@ Almost every converter follows one skeleton: read source CSVs, concat, subject-s
 - **`convert_tyssowski.py` and `convert_hantman_mv.py` are near-clones.** The differences are a
   keypoint filter (`KEEP_KEYPOINTS`), a skeleton, and the default split seed.
 - **`load_subject_mapping` is identical** in the kaufman and kaufman-water converters.
-- **The split-and-write loop** (for train/test: select rows, `to_csv`, print counts) is repeated
-  in about 8 converters.
 - **`process_split` names two unrelated functions:** the stage-2 conversion step in
   `mighty_mouse/preprocess/convert.py` and the stage-1 face-keypoint inference step in the ibl
   converter.
@@ -23,8 +21,8 @@ Almost every converter follows one skeleton: read source CSVs, concat, subject-s
   index, which `read_labels_csv` does not support; `fix_empty_first_row` therefore does not apply
   to it.
 
-Proposal: a small shared helper module in `mighty_mouse/preprocess/` (read, split-and-write,
-project.yaml rewrite) so each converter keeps only its dataset-specific logic.
+Proposal: a small shared helper module in `mighty_mouse/preprocess/` (read, project.yaml
+rewrite) so each converter keeps only its dataset-specific logic.
 
 ## B. Pseudo-labeling stack
 

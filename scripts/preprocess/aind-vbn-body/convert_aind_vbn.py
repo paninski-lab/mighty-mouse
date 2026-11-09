@@ -207,10 +207,12 @@ def main() -> None:
     n_kps = len(df.columns) // 2
     print(f"{args.view}: {len(df)} frames, {len(videos)} sessions, {n_kps} keypoints")
 
-    splits = (("CollectedData.csv", df[~is_test]), ("CollectedData_test.csv", df[is_test]))
-    for name, split_df in splits:
-        split_df.to_csv(out_dir / name)
-        print(f"  {name}: {len(split_df)} frames ({len(split_df) / len(df):.1%})")
+    splits = (("train", "CollectedData.csv", df[~is_test]),
+              ("test", "CollectedData_test.csv", df[is_test]))
+    for split_name, csv_name, split_df in splits:
+        split_df.to_csv(out_dir / csv_name)
+        print(f"  {split_name}: {len(split_df)} frames -> {out_dir / csv_name}")
+    print(f"  test fraction: {is_test.mean():.1%}")
 
     # copy only labeled images (cropped + resized)
     src_proj = {s: p.parents[1] for s, p in videos.items()}
