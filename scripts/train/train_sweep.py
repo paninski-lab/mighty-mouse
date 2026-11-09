@@ -48,12 +48,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from mighty_mouse.evaluation.run import clean_run_dir, evaluate_run
 from mighty_mouse.paths import load_paths
 from mighty_mouse.train.sweep import (
     build_combos,
     check_lightning_pose,
     csv_stem,
-    evaluate_model,
     make_output_dir,
     make_train_command,
     needs_lp_branch,
@@ -187,8 +187,8 @@ def main():
                 failures.append(f"{label} (no output dir)")
                 continue
             try:
-                evaluate_model(output_dir, csv_file, data_dir,
-                               keep_checkpoints=args.keep_checkpoints)
+                evaluate_run(output_dir, data_dir)
+                clean_run_dir(output_dir, args.keep_checkpoints)
             except Exception as e:
                 print(f"  ERROR: evaluation failed: {e}")
                 failures.append(f"{label} (evaluation: {e})")

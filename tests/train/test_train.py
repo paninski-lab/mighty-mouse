@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
+from mighty_mouse.datasets import ALL_DATASETS
 from mighty_mouse.paths import repo_root
 
 DATA_DIR = Path("/data/corpus")
@@ -126,7 +127,7 @@ class TestMakeTrainCommand:
         cmd = train.make_train_command("CollectedData_ibl_train.csv", "vits_dinov3", "1", "0", [],
                                        Path("/out"), DATA_DIR, temperature="2")
         ov = self.overrides(cmd)
-        assert f"++data.dataset_names=[{','.join(train.EVAL_DATASETS)}]" in ov
+        assert f"++data.dataset_names=[{','.join(ALL_DATASETS)}]" in ov
         assert "++training.sampling_temperature='2'" in ov
 
     def test_make_train_command_zoom_config_passes_datasets(self, train, tmp_path):
@@ -154,3 +155,14 @@ class TestMakeExtractCommand:
             'test -d "/data/corpus" || tar -xf "/data/corpus.tar" -C "/data"'
             ' && mkdir -p "/data/corpus/videos"'
         )
+
+
+class TestMakeEvalCommand:
+    """Test the function make_eval_command."""
+
+    def test_make_eval_command_runs_evaluate_run_script(self, train):
+        cmd = train.make_eval_command(Path("/out/run"))
+        assert cmd[0] == "python"
+        assert cmd[1] == str(repo_root() / "scripts" / "evaluation" / "evaluate_run.py")
+        assert Path(cmd[1]).is_file()
+        assert cmd[2:] == ["--run", "/out/run"]

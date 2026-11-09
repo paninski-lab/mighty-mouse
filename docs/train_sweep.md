@@ -212,7 +212,7 @@ dedicated per-dataset models, leave-one-out trunks), shows which runs exist and 
 ones; see [`skills/train/train-plan/SKILL.md`](../skills/train/train-plan/SKILL.md).
 
 Both sampling and zoom look up each training frame's dataset, so `mighty_mouse/train/sweep.py` passes
-`ALL_DATASETS` as `data.dataset_names` whenever a run uses either. Evaluation (`evaluate_model`)
+`ALL_DATASETS` as `data.dataset_names` whenever a run uses either. Evaluation (`mighty_mouse.evaluation.run.evaluate_run`)
 scores labeled cells only (`visible == 2`) and leaves the tongue and lip keypoints out
 (`mighty_mouse/evaluation/comparison.py`); each `eval/<dataset>/` also gets a `comparison_metrics.json`.
 

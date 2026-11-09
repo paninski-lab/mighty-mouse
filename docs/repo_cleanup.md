@@ -45,7 +45,7 @@ and `mighty_mouse/preprocess/labeling/{active_labeling,ensemble}.py`.
 
 - **Several variants of `model.predict_on_label_csv(...)`**: `transfer_pseudo_labels.predict_with_model`,
   `labeling.ensemble.predict`, `scripts/evaluation/zeroshot_predict.py`, and
-  `mighty_mouse.train.sweep.evaluate_model`. They differ in how the input CSV is built. The
+  `mighty_mouse.evaluation.run.evaluate_run`. They differ in how the input CSV is built. The
   `ensemble.predict` design (label-free input CSV under a unique basename, so it cannot overwrite
   the model's own self-eval predictions) is the safest; one function could serve all of them.
 - **`parse_keypoints` and `verify_untouched` are each defined twice**, once in
@@ -65,8 +65,10 @@ and `mighty_mouse/preprocess/labeling/{active_labeling,ensemble}.py`.
 > (`run_dir`, `parse_run_dir`, `recipe_run_dir`, `RECIPE`), used by `sweep.py`, `eval_suite.py`,
 > `zeroshot_score.py` and, through `python -m mighty_mouse.train.layout`, `train_plan.sh`.
 > `sweep.py` no longer reads `paths.yaml` at import: `results_dir` / `data_dir` are passed in by the
-> two sweep scripts. Still open: the duplicated aggregation in the two eval scripts, the duplicated
-> sweep arguments, and moving `evaluate_model` under `evaluation/`.
+> two sweep scripts. Evaluation moved out of `sweep.py` into `mighty_mouse/evaluation/run.py`
+> (`evaluate_run`, `clean_run_dir`, pure `score_predictions`), with the thin CLI
+> `scripts/evaluation/evaluate_run.py` replacing `python -m mighty_mouse.train.sweep`. Still open:
+> the duplicated aggregation in the two eval scripts and the duplicated sweep arguments.
 
 - **Import-time work.** `mighty_mouse/train/sweep.py` (lines 35-38) calls `load_paths()` at import
   and defines `DATA_DIR` / `RESULTS_DIR` as module constants. This breaks the "no work at import

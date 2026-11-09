@@ -4,7 +4,7 @@ Standard evaluation tables for the Mighty Mouse recipe's models of a corpus vers
 
 Discovers the finished runs under <results_dir>/trunks* and <results_dir>/dedicated*
 (scripts/train/train_plan.sh layout), or takes explicit --run name=path pairs, and from the
-pixel_error.csv that evaluate_model writes for every dataset's test set produces:
+pixel_error.csv that evaluate_run writes for every dataset's test set produces:
 
   summary.csv        one row per (run, dataset): pooled median / mean pixel error over labeled
                      keypoints (visible == 2; tongue and lips excluded), frames, keypoints

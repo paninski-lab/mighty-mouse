@@ -13,7 +13,7 @@ are chained into one shell command per job:
     test -d <data_dir> || tar -xf <data_dir>.tar -C <data_dir's parent>
     && mkdir -p <data_dir>/videos
     && litpose train ...
-    && python -m mighty_mouse.train.sweep --output_dir ... --csv_file ...
+    && python scripts/evaluation/evaluate_run.py --run ...
 
 Each Job is an isolated snapshot of the launching Studio's own filesystem, not
 a shared mount multiple jobs write into — so every job independently checking
@@ -161,7 +161,7 @@ def main():
             csv_file, backbone, train_frames_n, seed, losses, output_dir, data_dir,
             args.debug, temperature, config_file=args.config_file, extra_overrides=extra,
         )
-        eval_cmd   = make_eval_command(output_dir, csv_file)
+        eval_cmd   = make_eval_command(output_dir)
         if args.keep_checkpoints:
             eval_cmd.append("--keep_checkpoints")
         # shlex.join: overrides such as sampling_temperature='inf' carry shell quotes

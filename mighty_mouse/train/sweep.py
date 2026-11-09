@@ -5,12 +5,9 @@ Combo generation, naming, and command-building live here so they stay identical 
 local (sequential) and Lightning AI (parallel) backends — only *how* a command gets executed
 differs.
 
-Also invocable standalone to run evaluation only. This exists because a
-Lightning AI Job is an independent remote process: there's no "come back to
-this process after training finishes" step like the local sweep script has,
-so evaluation has to be its own chainable command:
-
-    python -m mighty_mouse.train.sweep --output_dir <dir> --csv_file <CollectedData_..._train.csv>
+Evaluation lives in mighty_mouse/evaluation/run.py; a Lightning AI Job has no "come back to
+this process after training finishes" step, so make_eval_command builds it as a chainable
+command.
 
 Multi-dataset sampling temperature, the per-dataset zoom of configs/model_zoominout.yaml, the
 nonlinear head and resumable runs need lightning-pose on branch `post_sub_lp_delta`
@@ -19,29 +16,19 @@ keys and would silently train without them, so the sweeps call check_lightning_p
 any run that uses one. Drop the check once that branch is merged into lightning-pose main.
 """
 
-import argparse
-import json
-import shutil
 from itertools import product
 from pathlib import Path
 
-import numpy as np
 import yaml
 
 from mighty_mouse.datasets import ALL_DATASETS
-from mighty_mouse.labels import read_labels_csv
-from mighty_mouse.paths import load_paths, repo_root
+from mighty_mouse.paths import repo_root
 from mighty_mouse.train.layout import (
     losses_tag,
-    parse_run_dir,
     run_dir,
     sanitize,
     temperature_tag,
 )
-
-# Every model is evaluated against each dataset's test CSV. Pixel error is NaN
-# for keypoints absent from a given dataset; the plotting script handles filtering.
-EVAL_DATASETS = ALL_DATASETS
 
 # The lightning-pose branch (paninski-lab/lightning-pose) that reads these config keys; stock
 # lightning-pose ignores them.
@@ -55,11 +42,6 @@ LP_BRANCH_KEYS = ("sampling_temperature", "dataset_names", "imgaug_per_dataset_z
 def csv_stem(csv_file: str) -> str:
     """CollectedData_<tag>_train.csv -> <tag>_train"""
     return Path(csv_file).stem.split("_", 1)[1]
-
-
-def infer_csv_file(output_dir: Path) -> str:
-    """Train CSV filename a run directory was trained on (inverse of make_output_dir)."""
-    return f"CollectedData_{parse_run_dir(output_dir)['train_name']}.csv"
 
 
 def make_output_dir(
@@ -173,7 +155,7 @@ def make_train_command(
     # ++ adds or replaces a key, so any config works
     zoom = config_file is not None and "imgaug_per_dataset_zoom" in Path(config_file).read_text()
     if temperature_tag(temperature) is not None or zoom:
-        overrides.append(f"++data.dataset_names=[{','.join(EVAL_DATASETS)}]")
+        overrides.append(f"++data.dataset_names=[{','.join(ALL_DATASETS)}]")
     if temperature_tag(temperature) is not None:
         # quoted so "inf" stays a string
         overrides.append(f"++training.sampling_temperature='{temperature}'")
@@ -206,13 +188,12 @@ def make_train_command(
     )
 
 
-def make_eval_command(output_dir, csv_file) -> list[str]:
+def make_eval_command(output_dir) -> list[str]:
     """Build the standalone-evaluation argv for one sweep combo (chained onto
     make_train_command's output with `&&` for a single Lightning job command)."""
     return [
-        "python", "-m", "mighty_mouse.train.sweep",
-        "--output_dir", str(output_dir),
-        "--csv_file", str(csv_file),
+        "python", str(repo_root() / "scripts" / "evaluation" / "evaluate_run.py"),
+        "--run", str(output_dir),
     ]
 
 
@@ -245,129 +226,3 @@ def make_extract_command(data_dir: Path) -> str:
         f'test -d "{data_dir}" || tar -xf "{archive}" -C "{data_dir.parent}"'
         f' && mkdir -p "{data_dir / "videos"}"'
     )
-
-
-# ── evaluation ────────────────────────────────────────────────────────────────
-
-def evaluate_model(
-    output_dir: Path, csv_file: str, data_dir: Path, keep_checkpoints: bool = False,
-    datasets: list[str] | None = None,
-) -> None:
-    """Evaluate a trained model against every per-dataset test CSV, then clean
-    up the scratch prediction files litpose leaves behind in output_dir and,
-    unless keep_checkpoints, delete model checkpoints (*.ckpt) — evaluation
-    predictions/pixel-errors under output_dir/eval/<dataset>/ are what's kept
-    long-term.
-
-    Pixel errors count labeled cells only (visible == 2; tongue and lips are
-    left out, see mighty_mouse/evaluation/comparison.py); comparison_metrics.json pools
-    them. keep_checkpoints=True is needed for any model used after evaluation
-    (zero-shot predictions, fine-tuning). datasets: evaluate only these test
-    sets (default: every dataset in ALL_DATASETS). data_dir: corpus directory with the
-    per-dataset test CSVs and labeled-data/."""
-    from lightning_pose.api import Model
-    from PIL import Image
-
-    from mighty_mouse.evaluation.comparison import comparison_summary, visible_errors
-
-    output_dir, data_dir = Path(output_dir), Path(data_dir)
-
-    print("  Loading model...")
-    model = Model.from_dir(output_dir)
-
-    for eval_name in (datasets or EVAL_DATASETS):
-        test_csv = data_dir / f"CollectedData_{eval_name}_test.csv"
-
-        if not test_csv.exists():
-            print(f"  WARNING: {test_csv} not found — skipping {eval_name} eval")
-            continue
-
-        print(f"  Predicting on {eval_name} test set ({test_csv.name})...")
-        result = model.predict_on_label_csv(
-            csv_file=test_csv,
-            data_dir=data_dir,
-            compute_metrics=False,
-        )
-        preds_df = result.predictions
-
-        labels_df = read_labels_csv(test_csv)
-        if labels_df.index[0] == labels_df.index.name:
-            labels_df = labels_df.iloc[1:]
-
-        error_df = visible_errors(labels_df, preds_df)
-        preds_df = preds_df.loc[labels_df.index]
-        diagonals = []
-        for name in labels_df.index:
-            with Image.open(data_dir / name) as image:
-                diagonals.append(float(np.linalg.norm(image.size)))
-        summary = comparison_summary(error_df, np.asarray(diagonals))
-
-        save_dir = output_dir / "eval" / eval_name
-        save_dir.mkdir(parents=True, exist_ok=True)
-        preds_df.to_csv(save_dir / "predictions.csv")
-        error_df.to_csv(save_dir / "pixel_error.csv")
-        (save_dir / "comparison_metrics.json").write_text(json.dumps(summary, indent=2) + "\n")
-
-        mean_err = summary["mean_px"]
-        mean_txt = "n/a (no labeled cell)" if mean_err is None else f"{mean_err:.2f} px"
-        print(f"    Mean pixel error: {mean_txt}  →  {save_dir}")
-
-    for fname in ("predictions.csv", "predictions_pixel_error.csv"):
-        p = output_dir / fname
-        if p.exists():
-            p.unlink()
-    image_preds = output_dir / "image_preds"
-    if image_preds.exists():
-        shutil.rmtree(image_preds)
-
-    if keep_checkpoints:
-        n_kept = len(list(output_dir.rglob("*.ckpt")))
-        print(f"  Kept {n_kept} checkpoint file(s) (--keep_checkpoints)")
-    else:
-        n_deleted = 0
-        for ckpt in output_dir.rglob("*.ckpt"):
-            ckpt.unlink()
-            n_deleted += 1
-        print(f"  Deleted {n_deleted} checkpoint file(s)")
-
-
-def _main():
-    parser = argparse.ArgumentParser(
-        description="Evaluate a trained head-fixed model against every per-dataset test CSV. "
-                     "Also useful standalone for finishing sweep jobs that trained successfully "
-                     "but stalled before their chained eval step completed.",
-    )
-    parser.add_argument(
-        "--output_dir", required=True, type=Path,
-        help="Model output_dir passed to `litpose train`",
-    )
-    parser.add_argument(
-        "--csv_file", default=None,
-        help="Train CSV filename the model was trained on (for logging only). "
-             "Inferred from output_dir's path structure if omitted.",
-    )
-    parser.add_argument(
-        "--data_dir", default=None, type=Path,
-        help="Corpus directory with the test CSVs (default: paths.yaml data_dir).",
-    )
-    parser.add_argument(
-        "--keep_checkpoints", action="store_true",
-        help="Keep *.ckpt files after evaluation (needed for zero-shot predictions and "
-             "fine-tuning).",
-    )
-    parser.add_argument(
-        "--datasets", default=None,
-        help="Comma-separated test sets to evaluate (default: every dataset in ALL_DATASETS).",
-    )
-    args = parser.parse_args()
-    csv_file = args.csv_file or infer_csv_file(args.output_dir)
-    datasets = [d for d in args.datasets.split(",") if d] if args.datasets else None
-    print(f"output_dir: {args.output_dir}")
-    print(f"csv_file:   {csv_file}")
-    data_dir = args.data_dir or Path(load_paths()["data_dir"])
-    evaluate_model(args.output_dir, csv_file, data_dir, keep_checkpoints=args.keep_checkpoints,
-                   datasets=datasets)
-
-
-if __name__ == "__main__":
-    _main()
