@@ -4,7 +4,16 @@ from pathlib import Path
 
 import numpy as np
 
-from mighty_mouse.plots.house_style import GROUPS, color, csv_dir, fit, square, video_path
+from mighty_mouse.plots.house_style import (
+    BANNER_H,
+    GROUPS,
+    blank_canvas,
+    color,
+    csv_dir,
+    fit,
+    square,
+    video_path,
+)
 
 
 class TestColor:
@@ -57,3 +66,13 @@ class TestVideoPath:
 
     def test_csv_dir_is_sibling_of_videos(self, tmp_path: Path):
         assert csv_dir(video_path(tmp_path / "x.mp4")) == tmp_path / "csv"
+
+
+class TestBlankCanvas:
+    """Test the function blank_canvas."""
+
+    def test_blank_canvas_banner_above_panels(self):
+        canvas = blank_canvas(300, 200)
+        assert canvas.shape == (200 + BANNER_H, 300, 3)
+        assert canvas.dtype == np.uint8
+        assert (canvas == 14).all()

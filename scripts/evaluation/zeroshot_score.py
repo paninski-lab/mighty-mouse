@@ -35,6 +35,7 @@ import pandas as pd
 
 from mighty_mouse.datasets import ALL_DATASETS, tag_of
 from mighty_mouse.evaluation.comparison import trained_keypoints, visible_errors
+from mighty_mouse.evaluation.delivery import front_matter_lines
 from mighty_mouse.paths import load_paths
 from mighty_mouse.train.layout import TRAIN_SUFFIX, recipe_run_dir, tag_of_train_name, train_name
 
@@ -201,11 +202,14 @@ def main() -> None:
             f"| {pct(ds, 'test', 'detect')} / {pct(ds, 'train', 'detect')} "
             f"| {pct(ds, 'test', 'conf_wrong')} / {pct(ds, 'train', 'conf_wrong')} |")
     readme = [
-        "---", f"title: Leave-one-out zero-shot, {data_dir.name} ({args.area})",
-        f"date: {date.today()}", f"data_version: {data_dir.name}",
-        "question: How well does a trunk that never saw dataset X predict X's labeled keypoints?",
-        f"models: {args.area} leave-one-out trunks, all-data trunk, {args.dedicated}",
-        "outputs: summary.csv, per_keypoint.csv", "finding: (to fill after reading)", "---", "",
+        *front_matter_lines(
+            title=f"Leave-one-out zero-shot, {data_dir.name} ({args.area})",
+            date=str(date.today()), data_version=data_dir.name,
+            question="How well does a trunk that never saw dataset X predict X's labeled "
+                     "keypoints?",
+            models=f"{args.area} leave-one-out trunks, all-data trunk, {args.dedicated}",
+            outputs="summary.csv, per_keypoint.csv", finding="(to fill after reading)"),
+        "",
         "# Leave-one-out zero-shot", "",
         "Each leave-X-out trunk scored on X's labeled keypoints (visible == 2) on X's test AND",
         "train frames (it saw neither); the all-data trunk and the dedicated X model (both",

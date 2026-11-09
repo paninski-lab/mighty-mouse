@@ -102,6 +102,20 @@ and `mighty_mouse/preprocess/labeling/{active_labeling,ensemble}.py`.
   `render_panel.py`, with swapped argument order (the `render_panel.py` copy is a local
   re-implementation of the shared one). `render_panel.py` also has its own `val()` accessor.
 
+> **Status (renderer plan steps 1-5 done):** all four renderers read labels with
+> `read_labels_csv`; frame sampling per view is `plots.views.sample_per_view`; ground-truth /
+> predicted points and the panel transform are in `plots/overlay.py`; `render_panel.py` uses the
+> shared `put`, `square`, `header` and `footer`. README front matter is defined once in
+> `mighty_mouse/evaluation/delivery.py` (three writers, one parser, the INDEX.md text; step 3).
+> The ensemble statistics (`evaluation/ensemble_stats.py`) and the median-frame images
+> (`plots/median_frame.py`) are out of `ensemble_variance_rows.py` (step 4). Each renderer's body
+> now lives in `mighty_mouse/evaluation/qualitative/` (`panel`, `compare`, `variance_rows`) and the
+> scripts are argparse plus one call (step 5); `active_round_video.py` calls
+> `render_variance_rows` directly. Still open, with section B: `active_round_video.py` keeps the
+> active-labeling directory layout and its five frame-selection modes (about 190 lines), and
+> `ensemble_stats` computes the same spread as `ensemble_spread` in
+> `preprocess/labeling/active_labeling.py`.
+
 ## E. Smaller items
 
 - **Pretrain:** `output_path` is defined in both `mighty_mouse/pretrain/dedup.py` (`.npz`) and

@@ -30,6 +30,7 @@ import pandas as pd
 
 from mighty_mouse.datasets import ALL_DATASETS, SHORT_NAMES
 from mighty_mouse.evaluation.comparison import ALWAYS_EXCLUDED
+from mighty_mouse.evaluation.delivery import front_matter_lines
 from mighty_mouse.paths import load_paths
 from mighty_mouse.train.layout import TRAIN_SUFFIX, recipe_seed_dirs, tag_of_train_name
 
@@ -160,11 +161,12 @@ def main() -> None:
     sections = [line for ds in ALL_DATASETS for line in keypoint_section(ds, runs, S, K)]
     today = date.today()
     lines = [
-        "---", f"title: Evaluation suite {today}", f"date: {today}",
-        f"data_version: {data_version}",
-        "question: How do the recipe's models score on every dataset's test set?",
-        f"models: {', '.join(runs)}", "outputs: summary.csv, per_keypoint.csv",
-        "finding: (fill in after reading the table)", "---", "",
+        *front_matter_lines(
+            title=f"Evaluation suite {today}", date=str(today), data_version=str(data_version),
+            question="How do the recipe's models score on every dataset's test set?",
+            models=", ".join(runs), outputs="summary.csv, per_keypoint.csv",
+            finding="(fill in after reading the table)"),
+        "",
         "# Evaluation suite", "",
         "Median pixel error over labeled keypoints (visible == 2; tongue and lips excluded), each",
         "run scored on every dataset's test set. A dedicated model scored on another dataset only",

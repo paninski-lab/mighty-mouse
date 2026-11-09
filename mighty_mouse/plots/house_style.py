@@ -36,6 +36,11 @@ def color(kp: str) -> tuple[int, int, int]:
     return (200, 200, 200)
 
 
+def blank_canvas(width: int, height: int) -> np.ndarray:
+    """Dark canvas for a video frame: `height` rows of panels under the banner."""
+    return np.full((height + BANNER_H, width, 3), 14, np.uint8)
+
+
 def put(img: np.ndarray, xy: tuple[int, int], text: str, fs: float = 0.5,
         col: tuple[int, int, int] = (235, 235, 235)) -> int:
     """Draw text at xy; return the x just after it."""

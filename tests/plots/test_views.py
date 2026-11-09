@@ -1,6 +1,6 @@
 """Test the mighty_mouse.plots.views module."""
 
-from mighty_mouse.plots.views import view_of
+from mighty_mouse.plots.views import sample_per_view, view_of
 
 
 class TestViewOf:
@@ -38,3 +38,33 @@ class TestViewOf:
     def test_view_of_unknown_dataset_falls_back(self):
         assert view_of("new-lab", "s1-cam3") == "cam3"
         assert view_of("new-lab", "s1") == "camera"
+
+
+class TestSamplePerView:
+    """Test the function sample_per_view."""
+
+    @staticmethod
+    def frames(sessions: list[str], n: int) -> list[str]:
+        return [f"labeled-data/{s}/img{i:03d}.png" for s in sessions for i in range(n)]
+
+    def test_sample_per_view_groups_by_view_sorted(self):
+        frames = self.frames(["a_right_flipped", "a_left"], 2)
+        out = sample_per_view(frames, "ibl", 10)
+        assert list(out) == ["left", "right"]
+        assert out["left"] == self.frames(["a_left"], 2)
+
+    def test_sample_per_view_evenly_spaced_in_given_order(self):
+        frames = self.frames(["a_left"], 10)
+        assert sample_per_view(frames, "ibl", 4)["left"] == [frames[i] for i in (0, 3, 6, 9)]
+
+    def test_sample_per_view_spreads_across_sessions(self):
+        frames = self.frames(["a_left", "b_left"], 5)
+        picked = sample_per_view(frames, "ibl", 2)["left"]
+        assert picked == [frames[0], frames[-1]]
+
+    def test_sample_per_view_n_larger_than_view_keeps_all(self):
+        frames = self.frames(["a_left"], 3)
+        assert sample_per_view(frames, "ibl", 60)["left"] == frames
+
+    def test_sample_per_view_empty(self):
+        assert sample_per_view([], "ibl", 5) == {}

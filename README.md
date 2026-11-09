@@ -298,7 +298,9 @@ mighty-mouse/
     plots/
       plot_keypoints.py         keypoint overlay visualization
       house_style.py            shared colours, banner, header/footer for overlay videos (skills/evaluation/pose-video)
-      views.py                  camera view of a labeled frame
+      views.py                  camera view of a labeled frame; evenly spaced frames per view
+      overlay.py                frame -> panel coordinates; ground-truth / predicted points of a frame
+      median_frame.py           session median frame and frame-minus-median images
     pretrain/
       layout.py                 fixed layout inside the `pretrain_dir` directory (paths.yaml's only pretraining entry)
       video_list.py             flatten the pretraining videos paths file into videos to process
@@ -326,6 +328,10 @@ mighty-mouse/
     evaluation/
       comparison.py             pixel errors over labeled cells (visible == 2), pooled summaries
       run.py                    evaluate a trained run on every dataset's test set; tidy its directory
+      delivery.py               README front matter of qualitative deliveries + the INDEX.md built from it
+      ensemble_stats.py         ensemble median, the three spread definitions, per-frame / per-keypoint tables
+      qualitative/              the overlay-video renderers: panel.py, compare.py, variance_rows.py
+                                 (logic; the CLIs are scripts/evaluation/qualitative/)
 
   tests/                        pytest suite; mirrors mighty_mouse/ (mighty_mouse/<stage>/b.py ->
                                  tests/<stage>/test_b.py). Run: python -m pytest tests

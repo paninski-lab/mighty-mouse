@@ -5,6 +5,11 @@ Session names are the same in a raw dataset and in the converted corpus.
 """
 
 import re
+from collections.abc import Iterable
+
+import numpy as np
+
+from mighty_mouse.labels import session_name
 
 # datasets recorded from one camera
 SINGLE_VIEW = {"cazettes-side": "side", "kondo": "bottom",
@@ -43,3 +48,22 @@ def view_of(dataset: str, session: str) -> str:
         return m.group(1)
     m = re.search(r"_(left|right)$", session)        # e.g. cavelli <session>_left / _right
     return m.group(1) if m else "camera"
+
+
+def sample_per_view(frames: Iterable[str], dataset: str, n: int) -> dict[str, list[str]]:
+    """At most `n` frames per camera view, evenly spaced through each view's frames (so across
+    sessions), in the order given.
+
+    Args:
+        frames: frame image paths ending in <session>/<frame>
+        dataset: dataset name, to tell the views apart (see `view_of`)
+        n: frames kept per view
+
+    Returns:
+        {view: frames}, views sorted by name
+    """
+    by_view: dict[str, list[str]] = {}
+    for frame in frames:
+        by_view.setdefault(view_of(dataset, session_name(frame)), []).append(frame)
+    return {view: [fs[int(i)] for i in np.linspace(0, len(fs) - 1, min(n, len(fs)))]
+            for view, fs in sorted(by_view.items())}
