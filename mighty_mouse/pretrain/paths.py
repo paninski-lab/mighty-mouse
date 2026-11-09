@@ -9,6 +9,7 @@ from pathlib import Path
 VIDEOS_PATHS_FILE = "paths.yaml"  # not the repo's paths.yaml: lists the pretraining videos
 EMBEDDINGS_DIR = "embeddings"
 DEDUP_DIR = "dedup"
+PRETRAIN_DATASETS_DIR = "pretrain_datasets"
 
 
 def pretrain_dir(paths: dict) -> Path:
@@ -35,3 +36,10 @@ def embeddings_dir(root: Path) -> Path:
 def dedup_dir(root: Path) -> Path:
     """`<pretrain_dir>/dedup`: stage-1 per-video selections"""
     return root / DEDUP_DIR
+
+
+def subset_dir(root: Path, size: str, method: str) -> Path:
+    """`<pretrain_dir>/pretrain_datasets/<size>_method<method>`: extracted pretraining frames
+    (`<dataset>/<video_key>/img<frame>.png`) of one frame-selection method, plus its
+    `selection.csv`."""
+    return root / PRETRAIN_DATASETS_DIR / f"{size}_method{method}"

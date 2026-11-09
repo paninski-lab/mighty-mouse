@@ -18,6 +18,7 @@ import hashlib
 import os
 from pathlib import Path
 
+import cv2
 import numpy as np
 
 DEFAULT_K = 15000
@@ -31,6 +32,45 @@ SKIP_FIRST_FRAMES = {
     "aind-vbn-body": 1,
     "aind-vbn-face": 1,
 }
+# leading seconds to ignore per dataset (frame rates differ between videos, so this is
+# converted per video with `skip_first_frames`)
+SKIP_FIRST_SECONDS = {
+    "scara": 60,
+    "costa-peterka": 35,
+}
+
+
+def video_fps(video_file: Path) -> float:
+    """Frame rate of a video file.
+
+    Raises:
+        OSError: if the video can't be opened or reports no frame rate
+    """
+    cap = cv2.VideoCapture(str(video_file))
+    try:
+        if not cap.isOpened():
+            raise OSError(f"Error opening video file {video_file}")
+        fps = cap.get(cv2.CAP_PROP_FPS)
+    finally:
+        cap.release()
+    if not fps > 0:
+        raise OSError(f"{video_file} reports no frame rate")
+    return float(fps)
+
+
+def skip_first_frames(dataset: str, fps: float | None = None) -> int:
+    """Leading frames of a `dataset` video to ignore: the larger of its `SKIP_FIRST_FRAMES`
+    and `SKIP_FIRST_SECONDS` (rounded to whole frames at `fps`) entries.
+
+    Raises:
+        ValueError: if the dataset skips seconds but `fps` is not given
+    """
+    frames = SKIP_FIRST_FRAMES.get(dataset, 0)
+    if dataset in SKIP_FIRST_SECONDS:
+        if fps is None:
+            raise ValueError(f"{dataset} skips leading seconds, so `fps` is required")
+        frames = max(frames, round(SKIP_FIRST_SECONDS[dataset] * fps))
+    return frames
 
 
 def output_path(dedup_dir: Path, model_type: str, dataset: str, key: str) -> Path:
