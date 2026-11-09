@@ -22,13 +22,14 @@ Usage:
 """
 
 import argparse
-import shutil
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
+from mighty_mouse.preprocess.convert import copy_images
 from mighty_mouse.preprocess.subject_split import subject_of, subject_split
 
 # Target ~10-15% of frames in test. The greedy split in subject_split() only ever
@@ -44,18 +45,6 @@ KEEP_KEYPOINTS = ["d2_3", "d3_3", "d4_3", "d5_3", "hand", "nose", "mouth"]
 # project.yaml skeleton: wrist (source "hand") to each digit tip
 SKELETON = [["hand", tip] for tip in ["d2_3", "d3_3", "d4_3", "d5_3"]]
 VIEW_CSVS = ["CollectedData_side.csv", "CollectedData_front.csv"]
-
-
-def copy_images(index: pd.Index, source_dir: Path, out_dir: Path) -> int:
-    copied = 0
-    for rel_path in index:
-        src = source_dir / rel_path
-        dst = out_dir / rel_path
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if not dst.exists():
-            shutil.copy2(src, dst)
-            copied += 1
-    return copied
 
 
 def main() -> None:
@@ -76,7 +65,7 @@ def main() -> None:
 
     dfs = []
     for csv_name in VIEW_CSVS:
-        view_df = pd.read_csv(source_dir / csv_name, header=[0, 1, 2], index_col=0)
+        view_df = read_labels_csv(source_dir / csv_name)
         print(f"  {csv_name}: {len(view_df)} frames")
         dfs.append(view_df)
 

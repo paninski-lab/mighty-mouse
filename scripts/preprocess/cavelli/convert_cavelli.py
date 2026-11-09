@@ -21,6 +21,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_of, subject_split
 
@@ -46,7 +47,7 @@ def main():
     src = args.src or raw_dir / "_dlc" / "cavelli"
     dst = args.dst or raw_dir / "cavelli"
 
-    df = pd.read_csv(src / "CollectedData_cavelli.csv", header=[0, 1, 2], index_col=0)
+    df = read_labels_csv(src / "CollectedData_cavelli.csv")
     scorer_in = df.columns[0][0]
     all_kps = list(dict.fromkeys(c[1] for c in df.columns))
     labeled = [kp for kp in all_kps if df[(scorer_in, kp, "x")].notna().any()]

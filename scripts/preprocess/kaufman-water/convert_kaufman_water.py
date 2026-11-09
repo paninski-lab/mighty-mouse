@@ -31,6 +31,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_split
 
@@ -67,7 +68,7 @@ def main() -> None:
         assert len(csvs) == 1, (
             f"expected 1 CollectedData_*.csv in {session_dir}, found {len(csvs)}"
         )
-        dfs.append(pd.read_csv(csvs[0], header=[0, 1, 2], index_col=0))
+        dfs.append(read_labels_csv(csvs[0]))
     for df in dfs[1:]:
         assert df.columns.equals(dfs[0].columns), "keypoint schemas differ across sessions"
     combined = pd.concat(dfs)

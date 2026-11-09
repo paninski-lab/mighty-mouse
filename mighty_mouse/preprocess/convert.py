@@ -447,8 +447,10 @@ def copy_images(
     files). Frames already present in ``out_dir`` are skipped.
 
     Args:
-        index: processed index paths (labeled-data/<dataset>/<session>/<frame>)
-        raw_dataset_dir: raw dataset folder containing labeled-data/<session>/<frame>
+        index: image paths under out_dir, e.g. labeled-data/<dataset>/<session>/<frame> or
+            labeled-data/<session>/<frame>; only the session and frame (last two components)
+            locate the source, the full path is the destination
+        raw_dataset_dir: source folder containing labeled-data/<session>/<frame>
         out_dir: output data directory
         link: symlink instead of copying
 

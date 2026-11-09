@@ -12,6 +12,12 @@ Guiding rule (from `AGENTS.md`): logic lives in `mighty_mouse/`; `scripts/` are 
 
 ## A. Per-dataset converters (`scripts/preprocess/<dataset>/`, ~1,500 lines)
 
+> **Status:** `copy_images` is now shared (tyssowski, hantman-mv and ibl use
+> `mighty_mouse.preprocess.convert.copy_images`), and the six single-index converters read
+> label CSVs with `read_labels_csv` (aind-vbn-body keeps `pd.read_csv` for its 3-column index).
+> Still open: the near-clone tyssowski / hantman-mv skeleton, `load_subject_mapping`, the shared
+> split-and-write loop, and the name clash between the two `process_split` functions.
+
 Almost every converter follows one skeleton: read source CSVs, concat, subject-split, write
 `CollectedData.csv` / `CollectedData_test.csv`, copy images, rewrite `project.yaml`.
 
