@@ -13,9 +13,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
-import corpus_summary
-
 from mighty_mouse.paths import load_paths, repo_root
+from mighty_mouse.preprocess.inventory import run as run_inventory
 
 CSV_NAMES = ["CollectedData.csv", "CollectedData_test.csv"]
 
@@ -167,11 +166,11 @@ def main():
     print(f"Bumped {args.dataset} to version {next_version}.")
 
     try:
-        corpus_summary.main()
+        run_inventory("raw", Path(paths["raw_dir"]))
     except Exception as e:  # the bump itself already succeeded; don't make it look failed
         print(
-            f"WARNING: bump done, but corpus summary failed: {e}\n"
-            "Re-run scripts/preprocess/corpus_summary.py."
+            f"WARNING: bump done, but the corpus summary failed: {e}\n"
+            "Re-run `python -m mighty_mouse.preprocess.inventory --source raw`."
         )
 
 

@@ -3,9 +3,6 @@
 Redundancy and structure issues still open in the repo. Guiding rule (from `AGENTS.md`): logic
 lives in `mighty_mouse/`; `scripts/` are thin CLIs.
 
-Deferred: `mighty_mouse/preprocess/inventory.py` and `scripts/preprocess/corpus_summary.py` do
-very similar things and should be merged.
-
 ## A. Per-dataset converters (`scripts/preprocess/<dataset>/`)
 
 Almost every converter follows one skeleton: read source CSVs, concat, subject-split, write
@@ -72,5 +69,4 @@ Files: `scripts/preprocess/{active_labeling,transfer_pseudo_labels,ensemble_pseu
   the rest of the layout in `mighty_mouse/pretrain/layout.py`.
 - **Label CSVs read with raw `pd.read_csv(header=[0, 1, 2], index_col=0)`** instead of
   `mighty_mouse.labels.read_labels_csv`, so an all-empty first row is silently dropped:
-  `read_preds` and the label read in `scripts/evaluation/zeroshot_score.py`, and `read_csv` in
-  `mighty_mouse/preprocess/inventory.py`.
+  `read_preds` and the label read in `scripts/evaluation/zeroshot_score.py`.

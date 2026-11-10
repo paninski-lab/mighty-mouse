@@ -10,6 +10,7 @@ Produces (in data_dir from paths.yaml):
   CollectedData_<dataset>_train.csv
   CollectedData_<dataset>_test.csv
   labeled-data/<dataset>/<session>/<frame>.png  (all images, both splits)
+and then refreshes the corpus inventory there (dataset_inventory.{json,md,csv}).
 
 Usage:
   python scripts/preprocess/convert_dataset.py --dataset facemap
@@ -30,15 +31,15 @@ from mighty_mouse.configs import (
 from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.convert import (
+    TEST_CSV,
+    TRAIN_CSV,
     copy_images,
     post_process,
     process_split,
     raw_dataset_dir,
     validate_dataset_config,
 )
-
-TRAIN_CSV = "CollectedData.csv"
-TEST_CSV  = "CollectedData_test.csv"
+from mighty_mouse.preprocess.inventory import run as run_inventory
 
 
 def main() -> None:
@@ -120,6 +121,14 @@ def main() -> None:
         print(f"  Images: {n_copied} copied, {n_exist} already present")
 
     print("\nDone.")
+
+    print("\nUpdating the dataset inventory...")
+    try:
+        run_inventory("corpus", args.raw_dir, args.data_dir)
+    except Exception as e:  # the conversion itself succeeded; don't make it look failed
+        print(f"WARNING: conversion done, but the inventory failed: {e}\n"
+              "Fix the cause and run `python -m mighty_mouse.preprocess.inventory "
+              "--source corpus`.")
 
 
 if __name__ == "__main__":
