@@ -7,10 +7,13 @@ import pytest
 
 from mighty_mouse.configs import (
     check_model_config,
+    collapse_side,
     default_configs_dir,
+    hflip_partner,
     load_canonical_keypoints,
     load_dataset_config,
     load_model_config,
+    load_regions,
     normalize_dataset_config,
 )
 
@@ -145,3 +148,47 @@ class TestCheckModelConfig:
         errors = check_model_config(model_cfg, canonical_kps)
 
         assert errors == ["model.yaml: num_keypoints=99 but keypoints.yaml has 4 keypoints"]
+
+
+class TestCollapseSide:
+    """Test the function collapse_side."""
+
+    def test_collapse_side_strips_suffix(self):
+        assert collapse_side("ear_tip_left") == collapse_side("ear_tip_right") == "ear_tip"
+
+    def test_collapse_side_keeps_midline_and_inner_side_words(self):
+        assert collapse_side("nose_tip") == "nose_tip"
+        assert collapse_side("left_ear_tip") == "left_ear_tip"
+
+
+class TestHflipPartner:
+    """Test the function hflip_partner."""
+
+    def test_hflip_partner_swaps_side(self):
+        assert hflip_partner("ear_tip_left") == "ear_tip_right"
+        assert hflip_partner("ear_tip_right") == "ear_tip_left"
+
+    def test_hflip_partner_none_for_midline(self):
+        assert hflip_partner("nose_tip") is None
+
+
+class TestLoadRegions:
+    """Test the function load_regions."""
+
+    def test_load_regions_maps_keypoints_to_header(self, tmp_path):
+        (tmp_path / "keypoints.yaml").write_text(
+            "keypoints:\n"
+            "  # ── eye ──\n"
+            "  - eye_top_left\n"
+            "  - eye_top_right  # comment\n"
+            "  # ── nose ──\n"
+            "  - nose_tip\n"
+            "  # - commented_out\n"
+        )
+        assert load_regions(tmp_path) == {
+            "eye_top_left": "eye", "eye_top_right": "eye", "nose_tip": "nose",
+        }
+
+    def test_load_regions_ignores_keypoints_before_any_header(self, tmp_path):
+        (tmp_path / "keypoints.yaml").write_text("keypoints:\n  - orphan\n  # ── a ──\n  - k\n")
+        assert load_regions(tmp_path) == {"k": "a"}

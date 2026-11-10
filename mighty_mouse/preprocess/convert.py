@@ -33,6 +33,10 @@ from mighty_mouse.labels import COORDS, SCORER, frame_name, session_name
 
 SIDES = ("left", "right")
 
+# label CSV names inside a raw dataset folder
+TRAIN_CSV = "CollectedData.csv"
+TEST_CSV  = "CollectedData_test.csv"
+
 
 # ── per-dataset post-processing ───────────────────────────────────────────────
 #
