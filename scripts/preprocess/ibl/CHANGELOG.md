@@ -4,6 +4,12 @@ See [`README.md`](README.md) for the pseudo-labeling pipeline.
 
 ## Changelog
 
+### 2026-11-14 (LA,LA,SI) (version 3)
+- Added four digit-tip keypoints (`d1_tip_r`, `d2_tip_r`, `d3_tip_r`, `d4_tip_r`) to the schema, appended
+  after `ear_bottom`. Labeled manually; not every frame has every digit (train: 7165 / 7412 / 7418 / 7011
+  of 7608 labeled for d1 / d2 / d3 / d4; test: 1376 / 1419 / 1419 / 1357 of 1446).
+- No existing keypoint labels were changed.
+
 ### 2026-10-24 (MW) (version 2)
 - Added four ear keypoints (`ear_base`, `ear_tip`, `ear_top`, `ear_bottom`) to the schema.
   All ear labels were manually reviewed and adjusted by hand in the Lightning Pose app
