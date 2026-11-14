@@ -26,6 +26,7 @@ ALL_DATASETS = [
     "kaufman",
     "kaufman-water",
     "kondo",
+    "murphy-1",
     "tyssowski",
 ]
 
@@ -44,6 +45,7 @@ SHORT_NAMES = {
     "cavelli":       "cav",
     "tyssowski":     "tys",
     "kaufman-water": "kaufw",
+    "murphy-1":      "murph-1",
 }
 
 

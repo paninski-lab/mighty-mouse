@@ -7,9 +7,9 @@ Each source project has the same 29-keypoint schema (4 digits x tip/mid/joint pe
 `r_mid_A`/`l_mid_A`, `snout_A`, `mouth_tip_A`, `spout_tip_A`) and one
 `labeled-data/<session>/CollectedData_tf.csv` per session folder. This script:
 
-- keeps only the digit tips (`r{1-4}_tip_A`, `l{1-4}_tip_A`) plus `snout_A` and
-  `mouth_tip_A`; drops mid/joint points, `r_mid_A`/`l_mid_A` and `spout_tip_A` (an object,
-  not a body part). Output names are the source names; mapping to the canonical
+- keeps only the digit tips (`r{1-4}_tip_A`, `l{1-4}_tip_A`); drops mid/joint points,
+  `r_mid_A`/`l_mid_A`, `snout_A`, `mouth_tip_A` and `spout_tip_A` (an object, not a body
+  part). Output names are the source names; mapping to the canonical
   vocabulary is a stage-2 concern (`configs/datasets/murphy-1.yaml`).
 - merges the three cameras into one project (`view_names: []`); sessions are renamed
   `<source folder>_<cam>` so the same folder name in two cameras can't collide.
@@ -18,6 +18,8 @@ Each source project has the same 29-keypoint schema (4 digits x tip/mid/joint pe
   copies of a session, or `FS_Trial31` vs `FS_L2_..._Trial31`). The copy in the
   best-named folder is kept (a recognizable-subject folder over an ambiguous one, an
   unprefixed name over `batch3_`/`b2`/`b4_`).
+- drops frames where either paw has a number of labeled digit tips outside
+  ALLOWED_DIGIT_COUNTS (before the split, so test fraction is of the kept frames).
 - splits at the subject level (see `subject_of`), via mighty_mouse.preprocess.subject_split.
   Only the images referenced by a CSV row are copied.
 
@@ -40,10 +42,13 @@ CAMERAS = ["cama", "camb", "camc"]
 SOURCE_CSV = "CollectedData_tf.csv"
 SCORER = "scorer"
 
-# Digit tips + snout + mouth_tip (the latter two may be removed later).
-KEEP_KEYPOINTS = (
-    [f"{side}{i}_tip_A" for side in "rl" for i in range(1, 5)] + ["snout_A", "mouth_tip_A"]
-)
+# Digit tips only.
+KEEP_KEYPOINTS = [f"{side}{i}_tip_A" for side in "rl" for i in range(1, 5)]
+
+# A frame is kept only if each paw has one of these numbers of digit tips labeled (x and y
+# both present). Frames with 1-2 tips on a paw are dropped: those digit labels look inconsistent
+# with the rest of the corpus, and we don't want to spend relabeling effort on them.
+ALLOWED_DIGIT_COUNTS = (0, 3, 4)
 
 # Target ~10-15% of frames in test; midpoint, because the greedy subject split only ever
 # overshoots its target (see mighty_mouse.preprocess.subject_split).
@@ -113,6 +118,19 @@ def dedupe(df: pd.DataFrame) -> pd.DataFrame:
     return df.iloc[sorted(keep)]
 
 
+def filter_digit_counts(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep frames where each paw has a number of labeled digit tips in ALLOWED_DIGIT_COUNTS."""
+    ok = pd.Series(True, index=df.index)
+    for side in "rl":
+        n = sum(
+            df[(SCORER, f"{side}{i}_tip_A", "x")].notna()
+            & df[(SCORER, f"{side}{i}_tip_A", "y")].notna()
+            for i in range(1, 5)
+        )
+        ok &= n.isin(ALLOWED_DIGIT_COUNTS)
+    return df[ok]
+
+
 def pick_split(counts: dict[str, int], seed: int | None) -> tuple[int, set[str], set[str]]:
     """Subject split with the given seed, or the first seed (from 0) landing in TEST_RANGE."""
     total = sum(counts.values())
@@ -146,6 +164,9 @@ def main() -> None:
         n_before = len(df)
         df = dedupe(df)
         print(f"{cam}: {n_before} frames, {n_before - len(df)} duplicates removed -> {len(df)}")
+        n_dedup = len(df)
+        df = filter_digit_counts(df)
+        print(f"{cam}: {n_dedup - len(df)} frames dropped by digit-count filter -> {len(df)}")
         df["subject"] = [subject_of(s) for s, _ in df.index]
         df.index = pd.MultiIndex.from_arrays(
             [[f"{s}_{cam}" for s, _ in df.index], df.index.get_level_values("frame")],
