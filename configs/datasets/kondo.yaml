@@ -8,6 +8,7 @@ keypoints:
   earroot: ear_base_{side}
   eartip: ear_tip_{side}
   earlateral: ear_bottom_{side}
+  eartop: ear_top_{side}
   eyelateral: eye_back_{side}
   eyemedial: eye_front_{side}
   lowerjaw: lowerlip
