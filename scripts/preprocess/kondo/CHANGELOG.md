@@ -7,6 +7,17 @@ current keypoint mapping.
 
 ## Changelog
 
+### 2026-11-14 (MW) (version 3)
+- Added a new `eartop` keypoint (placed between `earroot` and `eartip` in the column order), labeled
+  manually for nearly all frames (414 of 439 train, 118 of 120 test).
+- Manually re-adjusted the `earlateral` and `eartip` labels (nearly all frames) and a few `earroot`
+  labels (19 train / 3 test frames) to be consistent with the ear landmark definitions used in
+  `cheese-2d`.
+- Manually adjusted the `rightpawcenter` (160 train / 82 test frames) and `leftpawcenter`
+  (59 train / 55 test frames) labels.
+- A handful of other labels also differ from v2 (`eyelateral`/`eyemedial`/`nosetip` in 1-2 frames,
+  and one test frame each of `lowerjaw` and `tonguetip`); these hand edits weren't itemized.
+
 ### 2026-09-26 (MW) (version 2)
 - Manually adjusted the `earroot`/`earlateral`/`eartip` labels to be consistent with
   the ear landmark definitions used in `cheese-2d`.
