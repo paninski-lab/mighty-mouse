@@ -10,8 +10,7 @@ import numpy as np
 import pandas as pd
 
 LIP_KEYPOINTS    = frozenset({"upperlip_left", "upperlip_right", "lowerlip"})
-TONGUE_KEYPOINTS = frozenset({"tongue_tip", "tongue_center", "tongue_end_left",
-                              "tongue_end_right"})
+TONGUE_KEYPOINTS = frozenset({"tongue_tip", "tongue_end_left", "tongue_end_right"})
 ALWAYS_EXCLUDED: frozenset[str] = TONGUE_KEYPOINTS | LIP_KEYPOINTS
 
 

@@ -1,6 +1,7 @@
 exclude:
   keypoints:
     - backTongue
+    - middleTongue
   sessions:
 
 keypoints:
@@ -10,7 +11,6 @@ keypoints:
   rightPaw: wrist_right
   leftPaw: wrist_left
   tipTongue: tongue_tip
-  middleTongue: tongue_center
   pupilCenter: pupil_center_{side}
   ear_top: ear_top_{side}
   ear_tip: ear_tip_{side}

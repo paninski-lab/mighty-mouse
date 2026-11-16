@@ -34,11 +34,9 @@ keypoints:
   - nose_tip
   - nose_top
   - nose_bottom
-  - pad_center
   - mouth
   - lowerlip
   - tongue_tip
-  - tongue_center
 
   # ── whiskers ──────────────────────────────────────────────────────────────
   - pad_top_left
