@@ -33,6 +33,14 @@ keypoints:
   pad(side)(right): pad_side_right
   wrist_left: wrist_left
   wrist_right: wrist_right
+  d1_tip_left: d1_tip_left
+  d2_tip_left: d2_tip_left
+  d3_tip_left: d3_tip_left
+  d4_tip_left: d4_tip_left
+  d1_tip_right: d1_tip_right
+  d2_tip_right: d2_tip_right
+  d3_tip_right: d3_tip_right
+  d4_tip_right: d4_tip_right
 
 sessions:
   20231013_B6_long-anes_awake_000_BC_09-36-00: null

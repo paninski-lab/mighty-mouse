@@ -8,6 +8,18 @@ current keypoint mapping.
 
 ## Changelog
 
+### 2026-11-15 (SI,LA,MW) (version 3)
+- Added eight digit-tip keypoints (`d{1-4}_tip_left`, `d{1-4}_tip_right`) to the schema, appended
+  after `wrist_right`. Initial labels were pseudo-labels, adjusted by hand (SI) and then validated
+  (LA, MW). Not every frame has every digit tip (train, of 665 frames: left d1-d4 labeled in
+  164 / 195 / 202 / 198, right d1-d4 in 232 / 264 / 276 / 271; test, of 291 frames: left
+  111 / 123 / 127 / 126, right 122 / 129 / 130 / 128).
+- Manually adjusted the `wrist_left` and `wrist_right` labels (train: 131 / 187 frames; test:
+  99 / 93 frames).
+- A handful of other labels also differ from v2 (train: eye, `ear(top)(left/right)`, `ear(tip)`,
+  `ear(bottom)(right)` in 1-3 frames each; test: `upperlip(left)` in 1 frame, `nose(tip)` in 2,
+  `nose(top)` in 4); these hand edits weren't itemized.
+
 ### 2026-10-17 (MW) (version 2)
 - Manual label review and correction pass (MW) over `CollectedData.csv` and
   `CollectedData_test.csv`, checking per-view consistency (eye/ear/pad/lip sides match the camera
