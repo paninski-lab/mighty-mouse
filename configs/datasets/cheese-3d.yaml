@@ -1,5 +1,6 @@
 exclude:
   keypoints:
+    - pad(center)
   sessions:
 
 keypoints:
@@ -19,7 +20,6 @@ keypoints:
   ear(bottom)(left): ear_bottom_left
   pad(top)(left): pad_top_left
   pad(side)(left): pad_side_left
-  pad(center): pad_center
   eye(front)(right): eye_front_right
   eye(top)(right): eye_top_right
   eye(back)(right): eye_back_right

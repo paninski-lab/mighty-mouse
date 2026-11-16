@@ -9,7 +9,7 @@ data:
   # path (null = stock single-corpus behavior). mighty_mouse/train/sweep.py fills it from ALL_DATASETS
   # for the temperature sampler and imgaug_per_dataset_zoom below.
   dataset_names: null
-  num_keypoints: 44
+  num_keypoints: 42
   keypoint_names:
   # ── eye ───────────────────────────────────────────────────────────────────
   - eye_back_left
@@ -31,11 +31,9 @@ data:
   - nose_tip
   - nose_top
   - nose_bottom
-  - pad_center
   - mouth
   - lowerlip
   - tongue_tip
-  - tongue_center
   # ── whiskers ──────────────────────────────────────────────────────────────
   - pad_top_left
   - pad_top_right
