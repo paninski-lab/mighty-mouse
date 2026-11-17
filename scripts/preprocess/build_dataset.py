@@ -20,6 +20,10 @@ name (e.g. "face+cheese"), while balanced tags include it (e.g. "face+cheese-600
 the next data version without repointing paths.yaml under a run that's training from it).
 Sampling logic lives in mighty_mouse/preprocess/build.py.
 
+A build that includes every dataset in ALL_DATASETS (a full corpus build) also records the
+dataset versions in assets/corpus_history.md, when --data_dir is named <something>_vN
+(see mighty_mouse/preprocess/history.py).
+
 Usage:
   python scripts/preprocess/build_dataset.py --tag face+ibl-600 --datasets facemap ibl \
       --n_frames 600
@@ -38,11 +42,14 @@ from mighty_mouse.datasets import ALL_DATASETS
 from mighty_mouse.labels import read_labels_csv
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.build import build_merged, dataset_rng, subsample
+from mighty_mouse.preprocess.history import record_corpus_version
 
 
-def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: str) -> None:
+def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: str) -> list[str]:
+    """Write the merged CSVs of `tag`; return the datasets that were found and merged."""
     train_dfs: list[pd.DataFrame] = []
     test_dfs:  list[pd.DataFrame] = []
+    loaded:    list[str] = []
 
     for name in datasets:
         train_csv = data_dir / f"CollectedData_{name}_train.csv"
@@ -61,6 +68,7 @@ def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: st
         sample = subsample(train_df, n_frames, dataset_rng(seed, name))
         print(f"  Sampled {len(sample)} frames")
         train_dfs.append(sample)
+        loaded.append(name)
 
         if test_csv.exists():
             test_df = read_labels_csv(test_csv)
@@ -71,7 +79,7 @@ def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: st
 
     if not train_dfs:
         print("ERROR: no datasets loaded.")
-        return
+        return loaded
 
     print("\n── merged train ────────────────────────────────────")
     merged_train = build_merged(train_dfs)
@@ -87,6 +95,7 @@ def build(data_dir: Path, datasets: list[str], n_frames: int, seed: int, tag: st
         print(f"  {len(merged_test)} rows → {merged_test_path.name}")
 
     print("\nDone.")
+    return loaded
 
 
 def main() -> None:
@@ -117,7 +126,9 @@ def main() -> None:
     args = parser.parse_args()
 
     data_dir = args.data_dir or Path(load_paths()["data_dir"])
-    build(data_dir, args.datasets, args.n_frames, args.seed, args.tag)
+    loaded = build(data_dir, args.datasets, args.n_frames, args.seed, args.tag)
+    if set(ALL_DATASETS) <= set(loaded):  # a full corpus build: record it in the corpus history
+        record_corpus_version(data_dir, Path(load_paths()["raw_dir"]))
 
 
 if __name__ == "__main__":
