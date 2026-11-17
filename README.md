@@ -252,7 +252,7 @@ mighty-mouse/
 
   skills/<stage>/<name>/SKILL.md
     pretrain/                   extract-embeddings, dedup-videos, extract-frames
-    preprocess/                 preprocess-new-dataset, add-keypoints-to-raw-dataset, bump-dataset-version,
+    preprocess/                 preprocess-new-dataset, add-keypoints-to-raw-dataset, bump-dataset-version, build-corpus-version,
                                  transfer-pseudo-labels, active-pseudo-labeling, train-lightning-pose-model
     train/                      train-plan
     evaluation/                 eval-suite, pose-video
@@ -316,6 +316,9 @@ mighty-mouse/
                                  -> <data_dir>/dataset_inventory.{json,md,csv}) or from the raw datasets in memory
                                  (`--source raw`, run by bump_version.py -> assets/corpus.{md,csv})
                                  (`python -m mighty_mouse.preprocess.inventory`)
+      history.py                records each corpus version's dataset versions in assets/corpus_history.md
+                                 (called by build_dataset.py on a full-corpus build into head-fixed_vN;
+                                 `python -m mighty_mouse.preprocess.history` after a later freeze)
       subject_split.py          shared subject-level train/test split
       videos.py                 video snippet + motion-energy helpers
       labeling/
@@ -429,3 +432,7 @@ against `data/head-fixed_v1` belong in `results/head-fixed_v1`, not `results/hea
 mismatch here previously caused confusion about which data version a set of results actually came
 from; if you bump the data version, bump the results version to match even if you haven't trained
 anything against it yet.
+
+[`assets/corpus_history.md`](assets/corpus_history.md) records which version of each dataset went into
+each corpus version; see [`skills/preprocess/build-corpus-version/SKILL.md`](skills/preprocess/build-corpus-version/SKILL.md)
+for the full procedure.
