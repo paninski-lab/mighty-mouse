@@ -62,7 +62,9 @@ def load_source(source: Path) -> pd.DataFrame:
             [[csv.parent.name] * len(df), df.index.get_level_values(2)],
             names=["video", "frame"],
         )
-        df.columns = pd.MultiIndex.from_tuples([(SCORER, b, c) for _, b, c in df.columns])
+        df.columns = pd.MultiIndex.from_tuples(
+            [(SCORER, b, c) for _, b, c in df.columns], names=["scorer", "bodyparts", "coords"]
+        )
         frames.append(df[[(SCORER, k, c) for k in RENAME for c in ("x", "y")]])
     df = pd.concat(frames)
     return df.rename(columns=RENAME, level=1)
