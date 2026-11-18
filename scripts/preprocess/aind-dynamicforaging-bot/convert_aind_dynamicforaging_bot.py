@@ -24,8 +24,8 @@ CSV header is "Han_Lucas", not the project scorer). This script:
   taking the split from its CSVs.
 
 Usage:
-    python scripts/preprocess/aind-dynamicforaging-bot/\
-        convert_aind_dynamicforaging_bot.py [--seed N]
+    python scripts/preprocess/aind-dynamicforaging-bot/convert_aind_dynamicforaging_bot.py
+        [--seed N]
 """
 
 import argparse
