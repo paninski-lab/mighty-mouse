@@ -1,8 +1,8 @@
 # aind-foraging-bot dataset conversion
 
-> **Status:** converted to `_raw/aind-foraging-bot/` (LP format) only. Not yet in `ALL_DATASETS`
-> (`mighty_mouse/datasets.py`), no `configs/datasets/aind-foraging-bot.yaml`, and no
-> `VERSION.txt`/`versions/` yet (`bump_version.py` not run).
+> **Status:** in `ALL_DATASETS` (`mighty_mouse/datasets.py`), with its keypoint mapping in
+> [`configs/datasets/aind-foraging-bot.yaml`](../../../configs/datasets/aind-foraging-bot.yaml).
+> `convert_dataset.py` and `build_dataset.py` haven't been run for it yet.
 
 ## Source format
 
@@ -23,6 +23,11 @@ ones), so only the September project is used. The CSV header scorer is `Han_Luca
   videos, 101 frames (14.0%).
 - **Videos**: only those present in the source are copied to `videos/` / `videos_test/`; 7
   labeled videos have no file there; all are in train (their frames are still used).
+
+## After conversion
+
+`nose_bottom` was added afterwards (empty, labeled by hand) with `scripts/preprocess/add_keypoints.py`,
+so rerunning the converter yields only the original 7 keypoints and none of the later label edits.
 
 ## Running
 
