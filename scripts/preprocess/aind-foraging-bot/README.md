@@ -21,8 +21,12 @@ ones), so only the September project is used. The CSV header scorer is `Han_Luca
 - **Split**: whole videos, one video = one subject (no mouse ids available). The default seed is
   the first (seed 4) with 10-15% of frames in test and a video file for every test video -> 4 test
   videos, 101 frames (14.0%).
-- **Videos**: only those present in the source are copied to `videos/` / `videos_test/`; 7
-  labeled videos have no file there; all are in train (their frames are still used).
+- **Videos**: for each video present in the source, a 15 s `<video>.short.mp4` (h264, native
+  size, 30 fps) taken from the window with the most motion energy (pixel differences), into
+  `videos/` (train) or `videos_test/` (test). The source videos are already cropped to ~45-95 s
+  so nothing is skipped at the start. 7 labeled videos have no file in the source and so no clip;
+  all are in train (their frames are still used). `--videos_only` regenerates just the clips of an
+  existing dataset, taking the split from its CSVs.
 
 ## After conversion
 

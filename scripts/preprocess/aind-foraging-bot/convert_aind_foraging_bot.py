@@ -17,8 +17,11 @@ CSV header is "Han_Lucas", not the project scorer). This script:
 - splits at the video level (one video = one subject; there are no mouse ids), via
   mighty_mouse.preprocess.subject_split; the default seed is the first one whose test videos
   all have a video file in the source. Only the images referenced by a CSV row are copied.
-- copies each video that exists in the source into `videos/` (train) or `videos_test/` (test);
-  some labeled videos have no video file in the source and are skipped.
+- writes, for each video that exists in the source, a CLIP_LENGTH-second `<video>.short.mp4`
+  (the window with the most motion energy, from pixel differences) into `videos/` (train) or
+  `videos_test/` (test); some labeled videos have no video file in the source and are skipped.
+  `--videos_only` redoes just the clips of an already-converted (and possibly relabeled) dataset,
+  taking the split from its CSVs.
 
 Usage:
     python scripts/preprocess/aind-foraging-bot/convert_aind_foraging_bot.py [--seed N]
@@ -33,6 +36,7 @@ import yaml
 
 from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_split
+from mighty_mouse.preprocess.videos import make_video_snippet
 
 SOURCE_PROJECT = "aind-forage/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27"
 SCORER = "aind-foraging-bot"
@@ -51,6 +55,7 @@ RENAME = {
 # Target ~10-15% of frames in test; midpoint, because the greedy split only ever overshoots.
 TEST_FRACTION = 0.125
 TEST_RANGE = (0.10, 0.15)
+CLIP_LENGTH = 15  # seconds; the source videos are only ~45-95 s, already cropped, so no skip
 
 
 def load_source(source: Path) -> pd.DataFrame:
@@ -84,12 +89,36 @@ def pick_split(
     raise RuntimeError("no seed landed in the target test range with all test videos present")
 
 
+def make_clips(source: Path, out_dir: Path, train_videos: set[str], test_videos: set[str]) -> None:
+    """Write the highest-motion `.short.mp4` clip of each existing source video."""
+    for name, split_videos, sub in (
+        ("train", train_videos, "videos"),
+        ("test", test_videos, "videos_test"),
+    ):
+        vid_dir = out_dir / sub
+        vid_dir.mkdir(exist_ok=True)
+        n_made = 0
+        for v in sorted(split_videos):
+            src_video = source / "videos" / f"{v}.avi"
+            if not src_video.exists():
+                print(f"  (no source video for {v})")
+                continue
+            make_video_snippet(src_video, vid_dir, clip_length=CLIP_LENGTH, skip_start=0.0)
+            n_made += 1
+        print(f"  {name}: {n_made}/{len(split_videos)} clips written")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "--seed", type=int, default=None, help="split seed (default: first in range)"
+    )
+    parser.add_argument(
+        "--videos_only",
+        action="store_true",
+        help="only (re)make the clips of an already-converted dataset, split taken from its CSVs",
     )
     parser.add_argument(
         "--out_dir", type=Path, default=None, help="default: <raw_dir>/aind-foraging-bot"
@@ -99,6 +128,13 @@ def main() -> None:
     raw_dir = Path(load_paths()["raw_dir"])
     source = raw_dir / "_dlc" / SOURCE_PROJECT
     out_dir = args.out_dir or raw_dir / "aind-foraging-bot"
+    if args.videos_only:
+        splits = []
+        for csv in ("CollectedData.csv", "CollectedData_test.csv"):
+            idx = pd.read_csv(out_dir / csv, header=[0, 1, 2], index_col=0).index
+            splits.append({p.split("/")[1] for p in idx})
+        make_clips(source, out_dir, *splits)
+        return
     if (out_dir / "CollectedData.csv").exists():
         raise SystemExit(f"{out_dir} already converted; remove it first to rebuild")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -112,8 +148,6 @@ def main() -> None:
     print(f"split seed {seed}: {len(train_videos)} train / {len(test_videos)} test videos")
     print(f"  test videos: {sorted(test_videos)}")
 
-    (out_dir / "videos").mkdir(exist_ok=True)
-    (out_dir / "videos_test").mkdir(exist_ok=True)
     for name, split_videos in (("train", train_videos), ("test", test_videos)):
         split = df[df.index.get_level_values("video").isin(split_videos)]
         paths = [f"labeled-data/{v}/{f}" for v, f in split.index]
@@ -127,16 +161,7 @@ def main() -> None:
         out.to_csv(out_dir / csv_name)
         print(f"  {name}: {len(split)} frames ({len(split) / len(df):.1%})")
 
-        vid_dir = out_dir / ("videos" if name == "train" else "videos_test")
-        n_copied = 0
-        for v in sorted(split_videos):
-            src_video = source / "videos" / f"{v}.avi"
-            if src_video.exists():
-                shutil.copy2(src_video, vid_dir / src_video.name)
-                n_copied += 1
-            else:
-                print(f"  (no source video for {v})")
-        print(f"  {name}: {n_copied}/{len(split_videos)} videos copied")
+    make_clips(source, out_dir, train_videos, test_videos)
 
     project = {
         "keypoint_names": list(RENAME.values()),
