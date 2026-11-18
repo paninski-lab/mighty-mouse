@@ -1,4 +1,4 @@
-# Dataset config for _raw/aind-foraging-bot/ (see scripts/preprocess/aind-foraging-bot/README.md).
+# Dataset config for _raw/aind-dynamicforaging-bot/ (see scripts/preprocess/aind-dynamicforaging-bot/README.md).
 # Bottom-up view of a head-fixed mouse at a lick spout; both sides are visible in every frame.
 # Raw names are already canonical-style, with the left/right already swapped to the animal's side
 # at conversion time (bottom-up camera), so every keypoint is mapped one-to-one rather than with a

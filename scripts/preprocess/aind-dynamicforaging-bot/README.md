@@ -1,12 +1,12 @@
-# aind-foraging-bot dataset conversion
+# aind-dynamicforaging-bot dataset conversion
 
 > **Status:** in `ALL_DATASETS` (`mighty_mouse/datasets.py`), with its keypoint mapping in
-> [`configs/datasets/aind-foraging-bot.yaml`](../../../configs/datasets/aind-foraging-bot.yaml).
+> [`configs/datasets/aind-dynamicforaging-bot.yaml`](../../../configs/datasets/aind-dynamicforaging-bot.yaml).
 > `convert_dataset.py` and `build_dataset.py` haven't been run for it yet.
 
 ## Source format
 
-`_raw/_dlc/aind-forage/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27`: one standard
+`_raw/_dlc/aind-dynamicforaging/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27`: one standard
 DLC project (bottom-up camera on a mouse at a lick spout, 30 fps `.avi` clips), one
 `labeled-data/<video>/CollectedData_LucasKinsey.csv` per video, 39 videos / 723 frames. This
 is the later superset of `Foraging_Bot-Han_Lucas-2022-04-27` (same 29 videos plus 10 new
@@ -36,7 +36,7 @@ so rerunning the converter yields only the original 7 keypoints and none of the 
 ## Running
 
 ```bash
-python scripts/preprocess/aind-foraging-bot/convert_aind_foraging_bot.py [--seed N]
+python scripts/preprocess/aind-dynamicforaging-bot/convert_aind_dynamicforaging_bot.py [--seed N]
 ```
 
 Spot-checked by overlaying labels on 6 frames (3 train, 3 test).
