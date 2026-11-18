@@ -14,6 +14,7 @@ the end.
 """
 
 ALL_DATASETS = [
+    "aind-foraging-bot",
     "aind-vbn-body",
     "aind-vbn-face",
     "cavelli",
@@ -32,20 +33,21 @@ ALL_DATASETS = [
 
 # dataset -> short name in merged-CSV tags, in tag order (append new datasets at the end)
 SHORT_NAMES = {
-    "facemap":       "face",
-    "ibl":           "ibl",
-    "cheese-2d":     "cheese",
-    "cazettes-side": "caz",
-    "kondo":         "kondo",
-    "hantman-mv":    "hmv",
-    "cheese-3d":     "c3d",
-    "kaufman":       "kauf",
-    "aind-vbn-body": "vbnb",
-    "aind-vbn-face": "vbnf",
-    "cavelli":       "cav",
-    "tyssowski":     "tys",
-    "kaufman-water": "kaufw",
-    "murphy-1":      "murph-1",
+    "facemap":           "face",
+    "ibl":               "ibl",
+    "cheese-2d":         "cheese",
+    "cazettes-side":     "caz",
+    "kondo":             "kondo",
+    "hantman-mv":        "hmv",
+    "cheese-3d":         "c3d",
+    "kaufman":           "kauf",
+    "aind-vbn-body":     "vbnb",
+    "aind-vbn-face":     "vbnf",
+    "cavelli":           "cav",
+    "tyssowski":         "tys",
+    "kaufman-water":     "kaufw",
+    "murphy-1":          "murph-1",
+    "aind-foraging-bot": "forb",
 }
 
 

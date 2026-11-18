@@ -1,0 +1,61 @@
+# Dataset config for _raw/aind-foraging-bot/ (see scripts/preprocess/aind-foraging-bot/README.md).
+# Bottom-up view of a head-fixed mouse at a lick spout; both sides are visible in every frame.
+# Raw names are already canonical-style, with the left/right already swapped to the animal's side
+# at conversion time (bottom-up camera), so every keypoint is mapped one-to-one rather than with a
+# {side} template. Sessions are listed with a null side (config validation requires every session
+# to appear).
+
+exclude:
+  keypoints:
+  sessions:
+
+keypoints:
+  nose_tip: nose_tip
+  tongue_tip: tongue_tip
+  tongue_end_right: tongue_end_right
+  tongue_end_left: tongue_end_left
+  lowerlip: lowerlip
+  paw_wrist_left: wrist_left
+  paw_wrist_right: wrist_right
+  nose_bottom: nose_bottom
+
+sessions:
+  bottom_face_1-0000: null
+  bottom_face_5-0000: null
+  bottom_face_6-0000: null
+  bottom_face_20-0000: null
+  bottom_face_34-0000: null
+  bottom_face_37-0000: null
+  bottom_face_41-0000: null
+  bottom_face_49-0000: null
+  bottom_face_65-0000: null
+  bottom_face_70-0000: null
+  bottom_face_101-0000: null
+  bottom_face_110-0000: null
+  bottom_face_114-0000: null
+  bottom_face_115-0000: null
+  bottom_face_116-0000: null
+  bottom_face_121-0000: null
+  bottom_face_137-0000: null
+  bottom_face_164-0000: null
+  bottom_face_168-0000: null
+  bottom_face_171-0000: null
+  bottom_face_186-0000: null
+  bottom_face_197-0000: null
+  bottom_face_205-0000: null
+  bottom_face_226-0000: null
+  bottom_face_278-0000: null
+  bottom_face_336-0000: null
+  bottom_face_484-0000: null
+  bottom_face_521-0000: null
+  bottom_face_533-0000: null
+  bottom_face_534-0000: null
+  bottom_face_568-0000: null
+  bottom_face_593-0000: null
+  bottom_face_633-0000: null
+  bottom_face_670-0000: null
+  bottom_face_718-0000: null
+  bottom_face_857-0000: null
+  bottom_face_861-0000: null
+  bottom_face_866-0000: null
+  bottom_face_888-0000: null
