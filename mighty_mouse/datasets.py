@@ -14,7 +14,7 @@ the end.
 """
 
 ALL_DATASETS = [
-    "aind-foraging-bot",
+    "aind-dynamicforaging-bot",
     "aind-vbn-body",
     "aind-vbn-face",
     "cavelli",
@@ -47,7 +47,7 @@ SHORT_NAMES = {
     "tyssowski":         "tys",
     "kaufman-water":     "kaufw",
     "murphy-1":          "murph-1",
-    "aind-foraging-bot": "forb",
+    "aind-dynamicforaging-bot": "forb",
 }
 
 

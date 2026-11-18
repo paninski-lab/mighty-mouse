@@ -1,5 +1,5 @@
 dataset,version,train_frames,test_frames,train_sessions,test_sessions,train_labels,test_labels,eye,nose / mouth (lateralized),nose / mouth (midline),whiskers,ears,paw,direct,trainable
-aind-foraging-bot,1,622,101,35,4,4976,808,0,1,4,0,0,1,8,8
+aind-dynamicforaging-bot,1,622,101,35,4,4976,808,0,1,4,0,0,1,8,8
 aind-vbn-body,1,489,74,14,2,12714,1924,4,0,4,2,4,1,16,26
 aind-vbn-face,1,490,74,14,2,7350,1110,4,0,1,2,0,1,15,15
 cavelli,1,218,47,52,14,1308,282,1,0,2,0,0,1,6,6

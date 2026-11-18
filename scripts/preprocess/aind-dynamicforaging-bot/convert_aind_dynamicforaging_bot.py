@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Build _raw/aind-foraging-bot from the September 2022 DeepLabCut project at
-_raw/_dlc/aind-forage/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27.
+Build _raw/aind-dynamicforaging-bot from the September 2022 DeepLabCut project at
+_raw/_dlc/aind-dynamicforaging/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27.
 
 The source is one standard DLC project: a bottom-up camera on a head-fixed mouse at a lick
 spout, one `labeled-data/<video>/CollectedData_LucasKinsey.csv` per video (the scorer in the
@@ -13,7 +13,7 @@ CSV header is "Han_Lucas", not the project scorer). This script:
 - the camera views the mouse from below, so the source's image-left labels (`L`) are the
   animal's right, and left/right are swapped in the output names.
 - keeps native image sizes (crops differ per video: 272x272, 352x312, 304x272, 240x254, ...).
-- normalizes the scorer to "aind-foraging-bot".
+- normalizes the scorer to "aind-dynamicforaging-bot".
 - splits at the video level (one video = one subject; there are no mouse ids), via
   mighty_mouse.preprocess.subject_split; the default seed is the first one whose test videos
   all have a video file in the source. Only the images referenced by a CSV row are copied.
@@ -24,7 +24,8 @@ CSV header is "Han_Lucas", not the project scorer). This script:
   taking the split from its CSVs.
 
 Usage:
-    python scripts/preprocess/aind-foraging-bot/convert_aind_foraging_bot.py [--seed N]
+    python scripts/preprocess/aind-dynamicforaging-bot/convert_aind_dynamicforaging_bot.py
+        [--seed N]
 """
 
 import argparse
@@ -38,7 +39,7 @@ from mighty_mouse.paths import load_paths
 from mighty_mouse.preprocess.subject_split import subject_split
 from mighty_mouse.preprocess.videos import make_video_snippet
 
-SOURCE_PROJECT = "aind-forage/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27"
+SOURCE_PROJECT = "aind-dynamicforaging/Foraging_Bot_UpdatingOld_20220927-LucasKinsey-2022-09-27"
 SCORER = "aind-foraging-bot"
 
 # source column -> output keypoint (output order). Image-left is the animal's right.
@@ -121,13 +122,13 @@ def main() -> None:
         help="only (re)make the clips of an already-converted dataset, split taken from its CSVs",
     )
     parser.add_argument(
-        "--out_dir", type=Path, default=None, help="default: <raw_dir>/aind-foraging-bot"
+        "--out_dir", type=Path, default=None, help="default: <raw_dir>/aind-dynamicforaging-bot"
     )
     args = parser.parse_args()
 
     raw_dir = Path(load_paths()["raw_dir"])
     source = raw_dir / "_dlc" / SOURCE_PROJECT
-    out_dir = args.out_dir or raw_dir / "aind-foraging-bot"
+    out_dir = args.out_dir or raw_dir / "aind-dynamicforaging-bot"
     if args.videos_only:
         splits = []
         for csv in ("CollectedData.csv", "CollectedData_test.csv"):
