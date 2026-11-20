@@ -155,8 +155,9 @@ budget. Warren's low-resolution faces make that share doubtful for a face-pose p
 ## 100k comparison sets and stage 3
 
 The first pretraining comparison used ~100k-frame sets, one per method, each selected natively
-at 100k (not subsampled from a 1M selection). They were made with prototype code that
-`select_frames.py` reproduces, and their directories on disk use the prototype names:
+at 100k (not subsampled from a 1M selection). They were made with prototype code of the same
+method as `select_frames.py` (per-dataset budgets agree within 0.5%; the frames are a different
+random draw, about 45% shared for `hier`), and their directories on disk use the prototype names:
 `100k_methodA1` is `hier`, `100k_methodA2` is `fps`, and `100k_methodB` is the dropped global
 k-means. New sets are named `<size>_method<hier|fps>`.
 
