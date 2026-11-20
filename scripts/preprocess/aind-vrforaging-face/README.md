@@ -31,5 +31,5 @@ are discarded and only the frames are used.
 3. `transfer_pseudo_labels.py --predictions_csvs ...` fills the keypoints below where likelihood
    >= 0.7.
 
-Keypoints (all right-side, plus both wrists): `eye_{back,bottom,front,top}_right`, `nose_{tip,top,bottom}`,
+Keypoints (all right-side, plus both wrists): `eye_{back,bottom,front,top}_right`, `pupil_center_right`, `nose_{tip,top}`,
 `pad_{top,side}_right`, `ear_{top,tip,bottom,base}_right`, `wrist_{left,right}`.
