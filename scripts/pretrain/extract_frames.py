@@ -1,6 +1,6 @@
 """Stage 3 of pretraining frame selection: extract the selected frames as images.
 
-For each method (e.g. A1, A2, B) reads <pretrain_dir>/pretrain_datasets/<size>_method<method>/
+For each method (hier, fps) reads <pretrain_dir>/pretrain_datasets/<size>_method<method>/
 selection.csv (columns dataset, video_key, frame_index), decodes those frames from their
 videos (each video once, even if several methods chose frames from it), drops junk frames
 (blank/flat or blown out), downscales so the short side is at most --min_side, and saves
@@ -9,7 +9,7 @@ in dropped_frames.csv there. Existing images are skipped, so reruns resume. Exit
 if the junk share is above the limits (checked after everything is written).
 
 Usage:
-    python scripts/pretrain/extract_frames.py --methods A1 A2 B [--size 100k] [--workers 8]
+    python scripts/pretrain/extract_frames.py --methods hier fps [--size 100k] [--workers 8]
 """
 
 import argparse
@@ -70,7 +70,7 @@ def process_video(task):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--methods", nargs="+", required=True, help="e.g. A1 A2 B")
+    parser.add_argument("--methods", nargs="+", required=True, help="e.g. hier fps")
     parser.add_argument("--size", default="100k", help="subset name prefix, <size>_method<m>")
     parser.add_argument(
         "--min_side", type=int, default=MIN_SIDE, help="short side of saved frames"

@@ -251,7 +251,7 @@ mighty-mouse/
   # skills one level deep).
 
   skills/<stage>/<name>/SKILL.md
-    pretrain/                   extract-embeddings, dedup-videos, extract-frames
+    pretrain/                   extract-embeddings, dedup-videos, select-frames, extract-frames
     preprocess/                 preprocess-new-dataset, add-keypoints-to-raw-dataset, bump-dataset-version, build-corpus-version,
                                  transfer-pseudo-labels, active-pseudo-labeling, train-lightning-pose-model
     train/                      train-plan
@@ -261,6 +261,7 @@ mighty-mouse/
     pretrain/
       extract_embeddings.py     per-frame CLS embeddings for every pretraining video (see skills/pretrain/extract-embeddings)
       dedup_videos.py           stage-1 per-video dedup of those embeddings (see skills/pretrain/dedup-videos)
+      select_frames.py          stage-2 dataset budgets + per-dataset selection (hier / fps) (see skills/pretrain/select-frames)
       extract_frames.py         extract selected frames as junk-screened, downscaled PNGs (see skills/pretrain/extract-frames)
     preprocess/
       <dataset>/                per-dataset CHANGELOG.md, plus a converter + README if one was needed
@@ -306,6 +307,10 @@ mighty-mouse/
       kmeans.py                 chunked spherical k-means on GPU
       hierarchical.py           two-level k-means + balanced sampling (used by dedup.py for long videos)
       dedup.py                  stage-1 selection: flat or two-level k-means, one random frame per cluster, per video
+      budgets.py                stage-2 per-dataset budgets (frames^alpha, capped at the stage-1 pool)
+      pool.py                   stage-2 input: a dataset's stage-1 frames and embeddings
+      selection.py              stage-2 per-dataset selection: hier (balanced k-means) or fps
+      farthest_point.py         greedy farthest-point sampling
       frames.py                 stage-3 frame extraction: resize, junk screen, output layout
     preprocess/
       convert.py                per-dataset conversion logic + POST_PROCESS hooks

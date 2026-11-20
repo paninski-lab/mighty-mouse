@@ -1,11 +1,13 @@
 # Selecting ~1M pretraining frames from the video corpus
 
 Design notes for the frame-selection part of the masked-autoencoder backbone pretraining data
-pipeline: why stage 1 works the way it does, the evidence behind its choices, and the plan for
-stage 2. How to *run* each step lives in the skills
+pipeline: why stages 1 and 2 work the way they do, the evidence behind their choices, and how
+the first 100k-frame comparison sets were built. How to *run* each step lives in the skills
 ([`extract-embeddings`](../skills/pretrain/extract-embeddings/SKILL.md),
-[`dedup-videos`](../skills/pretrain/dedup-videos/SKILL.md)); this note doesn't repeat them.
-Numbers below are a snapshot (Oct 2026) of the corpus and experiments, not current facts.
+[`dedup-videos`](../skills/pretrain/dedup-videos/SKILL.md),
+[`select-frames`](../skills/pretrain/select-frames/SKILL.md),
+[`extract-frames`](../skills/pretrain/extract-frames/SKILL.md)); this note doesn't repeat them.
+Numbers below are a snapshot (Oct-Nov 2026) of the corpus and experiments, not current facts.
 
 ## Goal and constraints
 
@@ -29,7 +31,7 @@ head-fixed-mouse video, to pretrain a ViT backbone with masked autoencoding. Wha
 |---|---|---|
 | 0. Embed | frozen DINOv3 ViT-S/16 CLS token per frame, float16 (`extract_embeddings.py`) | done |
 | 1. Per-video dedup | keep at most 15k representative frames per video (`dedup_videos.py`) | done |
-| 2. Dataset budgets + cross-video selection | pool stage-1 frames, choose ~1M | planned, below |
+| 2. Dataset budgets + per-dataset selection | split the target over datasets, then choose each share from its stage-1 pool (`select_frames.py`, methods `hier` and `fps`) | done |
 | 3. Frame extraction | decode the chosen frames, drop junk, save images (`extract_frames.py`) | built; run for the 100k comparison sets |
 
 Embeddings are CLS-only (storage) at 224 px. All of it lives under `pretrain_dir`.
@@ -90,73 +92,76 @@ two-level / flat, so under 1.00 is better for coverage:
   no strong enough reason for an exception (12 of its 78 videos). Use
   `--two_level_min_frames` on that dataset to keep them flat if wanted.
 
-## Stage 2: dataset budgets and cross-video selection (plan)
+## Stage 2: dataset budgets and per-dataset selection
 
-**Input:** the stage-1 selections, pooled per dataset (~1.9M frames for ibl, which fits on the
-GPU). **Output of this phase:** comparison tables only; repo code comes after a winner is
-chosen. Everything is prototyped in the scratchpad first.
+`select_frames.py --method {hier,fps} --size 100k` pools each dataset's stage-1 frames (never
+test videos) and writes `selection.csv`.
 
-1. **Pool loader.** Concatenate each dataset's selected frames' normalized embeddings, with video
-   key, frame index and stage-1 `cluster_size`.
-2. **Budget table.** `frames^alpha` per dataset for alpha in {0.2, 0.3, 0.4, 0.5}, using raw
-   frame counts and the dataset's pool size as a cap with the surplus redistributed (facemap and
-   hantman-mv are tight). Choose alpha by looking at the table next to raw proportions.
-3. **Method A: alpha budgets, then selection inside each dataset.**
-   - A1: balanced hierarchical k-means (reuse `hierarchical.py`, cap = budget).
-   - A2: greedy farthest-point / epsilon-net (minimum-distance rule: dense regions are thinned
-     first, isolated frames are kept). Exact greedy is feasible on the GPU for ibl.
-   - A3: flat k-means, one random member per cluster (the stage-1 recipe, as the baseline).
-4. **Method B: global hierarchical k-means (Vo et al.).** Two levels over the whole pool
-   (k1 around 1.5M, about 10k groups), balanced sampling to 1M. Dataset budgets then come from
-   the cluster structure instead of alpha. This is the expensive arm (an estimated 20-30 min on
-   the GPU), so try a 10% subsample first.
-5. **Evaluation.** On a random sample of ~100k frames per dataset from the *full* embeddings (not
-   only the stage-1 pool): nearest-selected distance (mean, p95, p99.9), densest-state and
-   rare-state shares, fast-motion rate, the fraction of the 1% most isolated frames retained,
-   and kept share versus raw share per dataset (to compare B's implied allocation with alpha).
-6. **Outlier inspection.** Contact sheets of the most isolated kept frames per dataset for the
-   finalists. Embeddings can't separate junk (blank, corrupted, placeholder frames) from a
-   genuinely rare pose, and the farthest-point selector in particular favours isolated frames, so
-   this is a manual check. Whether it becomes an automatic filter is decided after seeing the
-   sheets.
-7. **Small pretraining tests.** Build ~100k-frame subsets from the winning approach or
-   approaches (needs the frame-extraction step) and pretrain on them.
+1. **Budgets** (`budgets.py`). The target is split over datasets in proportion to
+   `frames^alpha` with `alpha = 0.3` by default, using each dataset's raw frame count, and a
+   dataset never gets more than its stage-1 pool (the surplus is shared among the others). Alpha
+   oversamples big datasets (ibl) relative to small ones without following raw proportions.
+   Budgets are rounded to sum to exactly the target.
+2. **Selection inside each dataset** (`selection.py`), from the pool of unit-length embeddings:
+   - `hier`: balanced two-level k-means (`hierarchical.py`; level-1 clusters 3x the budget,
+     groups = clusters / 30). It under-weights dense stretches and keeps rare poses, and
+     behaves like stage 1's long-video method.
+   - `fps`: greedy farthest-point sampling (`farthest_point.py`). Dense regions are thinned
+     first and isolated frames are kept, so it is the most aggressive about rare poses, at a
+     cost in typical-frame coverage and a tendency to pick up junk.
+3. **Output.** `<pretrain_dir>/pretrain_datasets/<size>_method<method>/selection.csv` (dataset,
+   video key, frame index), which stage 3 turns into images. The k-means chunk size scales with
+   the number of clusters (`kmeans.chunk_for`), since the fixed stage-1 chunk runs out of memory
+   at the cluster counts used here.
 
-### Decisions already made
+### What the comparison found
 
-- About 1M frames is fine; an exact count is not required (budget rounding and pool caps make
-  exact numbers awkward).
-- Run the global method B in the comparison, with a subsample first.
-- Junk screening stays manual for now.
+Compared on 16 datasets at a 1M-frame budget, using a random sample of ~100k frames per dataset
+from the *full* embeddings: coverage (cosine distance to the nearest selected frame, mean and
+p99.9), the share taken from the densest state, the share from the rarest states, the keep rate
+of fast-motion frames and the fraction of the 1% most isolated frames kept. Medians relative to
+flat k-means (the stage-1 recipe) at equal budgets:
+
+| | mean coverage | p99.9 coverage | densest-state share | rare-state share | isolated kept |
+|---|---|---|---|---|---|
+| flat k-means | 1.00 | 1.00 | 1.00 | 1.00 | 0.36 |
+| `hier` | 1.07 | 0.97 | 0.89 | 1.11 | 0.50 |
+| `fps` | 1.29 | 0.84 | 0.72 | 1.38 | 1.00 |
+
+`fps` does best on every tail metric at ~29% worse mean coverage, and over-picks dark frames
+(ibl, hantman), a few blown-out or blank ones and cable-crossing frames (aind); the extraction
+junk screen below is the only guard. Outlier sheets of its most isolated frames were otherwise
+mostly real rare poses.
+
+A third method, one global two-level k-means over all datasets pooled (method B, k1 = 1.5x the
+target, 10k groups), was dropped. It selected like `hier` within a dataset (all metrics within
+a few percent) but took about 2 h instead of minutes, and its allocation follows the pool size
+and cluster scatter instead of a setting: ibl and warren got 28% each of the 1M frames, while
+facemap, cheese-2d, hantman-mv, costa-peterka and deepfacemouse got 12-35% of their alpha
+budget. Warren's low-resolution faces make that share doubtful for a face-pose project.
+
+### Decisions made
+
+- About 1M frames is fine; an exact count is not required.
+- Alpha budgets over cluster-derived allocation; both `hier` and `fps` are kept as options.
+- Junk screening happens at extraction (stage 3), not in stage 2.
 
 ### Open
 
-- The choice of alpha, and A1 vs A2 vs A3 vs B, from the stage-2 comparison above.
-- The output format of the final selection (something like a per-dataset table of video key and
-  frame index under `pretrain_dir`) and the frame-extraction step.
+- The choice of alpha and of `hier` vs `fps` for the 1M set. The first 100k pretraining runs
+  (hier, fps and B sets) showed no obvious differences between the methods.
 - Re-check the stage-1 100k threshold if a new dataset's video lengths land in an untested range.
 
 ## 100k comparison sets and stage 3
 
-The first pretraining comparison uses ~100k-frame sets, one per method, each selected natively
-at 100k (not subsampled from a 1M selection). Method names are used in directory names
-(`<pretrain_dir>/pretrain_datasets/100k_method<m>/`):
+The first pretraining comparison used ~100k-frame sets, one per method, each selected natively
+at 100k (not subsampled from a 1M selection). They were made with prototype code that
+`select_frames.py` reproduces, and their directories on disk use the prototype names:
+`100k_methodA1` is `hier`, `100k_methodA2` is `fps`, and `100k_methodB` is the dropped global
+k-means. New sets are named `<size>_method<hier|fps>`.
 
-- **A1**: per-dataset budgets `frames^0.3` (water-filled, capped at the stage-1 pool), then
-  balanced hierarchical k-means inside each dataset.
-- **A2**: the same budgets, then greedy farthest-point selection inside each dataset.
-- **B**: one global two-level k-means over the pooled stage-1 frames of all datasets (k1 = 1.5x
-  the target, 1000 groups), balanced sampling to 100k. Dataset budgets come from the cluster
-  structure.
-
-Findings behind the choice of these three (1M-frame budgets, 16 datasets; scratch experiments,
-medians relative to flat k-means at equal budgets): A2 has the best tail coverage (-16% p99.9),
-fewest densest-state frames (-27%), most rare-state frames (+22%) and keeps all of the 1% most
-isolated frames, at +21% worse mean coverage; A1 sits in between (+4% mean, -3% p99.9). B
-selects like A1 but its allocation follows the pool (ibl 28%, warren 28%) and starves small
-datasets (facemap, cheese-2d, hantman-mv, costa-peterka, deepfacemouse at 12-35% of their A
-budget); it also costs ~2 h versus minutes. A2 over-picks dark frames (ibl, hantman) and some
-blown-out or blank ones, hence the junk screen below.
+Junk dropped at extraction in those sets: `hier` 104 frames (0.10%), `fps` 290 (0.29%; hantman
+1.9%, ibl 1.1%), B 115 (0.11%).
 
 **Stage 3.** `extract_frames.py` writes `<dataset>/<video_key>/img<frame:08d>.png` (the layout
 the beast repo reads), with the short side downscaled to 256 (smaller frames kept as they are;

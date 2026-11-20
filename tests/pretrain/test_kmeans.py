@@ -6,7 +6,10 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from mighty_mouse.pretrain.kmeans import (  # noqa: E402
+    DEFAULT_CHUNK,
+    MAX_BLOCK_ELEMENTS,
     assign_to_centroids,
+    chunk_for,
     normalize_rows,
     random_member_per_cluster,
     spherical_kmeans,
@@ -100,3 +103,19 @@ class TestRandomMemberPerCluster:
         a = random_member_per_cluster(assign, 10, seed=3)
         b = random_member_per_cluster(assign, 10, seed=3)
         assert torch.equal(a, b)
+
+
+class TestChunkFor:
+    """Test the function chunk_for."""
+
+    def test_chunk_for_small_k_uses_default_chunk(self):
+        assert chunk_for(1500) == DEFAULT_CHUNK
+        assert chunk_for(45_000) == DEFAULT_CHUNK
+
+    def test_chunk_for_large_k_shrinks_block(self):
+        k = 500_000
+        assert chunk_for(k) == MAX_BLOCK_ELEMENTS // k
+        assert chunk_for(k) * k <= MAX_BLOCK_ELEMENTS
+
+    def test_chunk_for_huge_k_is_at_least_one_row(self):
+        assert chunk_for(10**10) == 1

@@ -43,3 +43,15 @@ def subset_dir(root: Path, size: str, method: str) -> Path:
     (`<dataset>/<video_key>/img<frame>.png`) of one frame-selection method, plus its
     `selection.csv`."""
     return root / PRETRAIN_DATASETS_DIR / f"{size}_method{method}"
+
+
+def parse_size(size: str) -> int:
+    """Number of frames in a subset name like `100k` or `1m` (case-insensitive).
+
+    Raises:
+        ValueError: if `size` isn't digits followed by `k` or `m`
+    """
+    units = {"k": 1_000, "m": 1_000_000}
+    if len(size) < 2 or not size[:-1].isdigit() or size[-1].lower() not in units:
+        raise ValueError(f"size must look like '100k' or '1m', got {size!r}")
+    return int(size[:-1]) * units[size[-1].lower()]
