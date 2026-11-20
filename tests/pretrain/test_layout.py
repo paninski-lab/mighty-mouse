@@ -7,6 +7,7 @@ import pytest
 from mighty_mouse.pretrain.layout import (
     dedup_dir,
     embeddings_dir,
+    parse_size,
     pretrain_dir,
     subset_dir,
     videos_paths_file,
@@ -40,3 +41,17 @@ class TestSubsetDir:
     def test_subset_dir_joins_size_and_method(self):
         root = Path("/data/videos")
         assert subset_dir(root, "100k", "A1") == root / "pretrain_datasets" / "100k_methodA1"
+
+
+class TestParseSize:
+    """Test the function parse_size."""
+
+    def test_parse_size_thousands_and_millions(self):
+        assert parse_size("100k") == 100_000
+        assert parse_size("1m") == 1_000_000
+        assert parse_size("2M") == 2_000_000
+
+    @pytest.mark.parametrize("bad", ["", "k", "100", "1.5m", "10g", "-5k"])
+    def test_parse_size_bad_raises(self, bad):
+        with pytest.raises(ValueError, match="size"):
+            parse_size(bad)

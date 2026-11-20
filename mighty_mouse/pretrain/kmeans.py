@@ -9,6 +9,13 @@ module can be imported without it.
 DEFAULT_N_ITER = 50
 DEFAULT_TOL = 1e-3
 DEFAULT_CHUNK = 32768
+MAX_BLOCK_ELEMENTS = 1_500_000_000  # largest (chunk, k) similarity block, in elements (~6 GB fp32)
+
+
+def chunk_for(k: int) -> int:
+    """Rows per similarity block for `k` centroids: `DEFAULT_CHUNK`, fewer if that block
+    would exceed `MAX_BLOCK_ELEMENTS` (very large `k`, as in cross-video selection)."""
+    return max(1, min(DEFAULT_CHUNK, MAX_BLOCK_ELEMENTS // k))
 
 
 def normalize_rows(x, chunk: int = DEFAULT_CHUNK):
@@ -81,7 +88,7 @@ def spherical_kmeans(
     seed: int = 0,
     n_iter: int = DEFAULT_N_ITER,
     tol: float = DEFAULT_TOL,
-    chunk: int = DEFAULT_CHUNK,
+    chunk: int | None = None,
     init: str = "kmeans++",
 ):
     """Cluster unit-length rows of `x` into `k` clusters by cosine similarity.
@@ -95,7 +102,7 @@ def spherical_kmeans(
         seed: seed for initialization
         n_iter: maximum iterations
         tol: stop when this fraction of rows (or less) changed cluster in an iteration
-        chunk: rows per similarity block
+        chunk: rows per similarity block (default: `chunk_for(k)`)
         init: `"kmeans++"` or `"random"`
 
     Returns:
@@ -111,6 +118,7 @@ def spherical_kmeans(
     n = len(x)
     if not 1 <= k <= n:
         raise ValueError(f"k must be in [1, {n}], got {k}")
+    chunk = chunk_for(k) if chunk is None else chunk
     if init not in ("kmeans++", "random"):
         raise ValueError(f"unknown init {init!r}")
 

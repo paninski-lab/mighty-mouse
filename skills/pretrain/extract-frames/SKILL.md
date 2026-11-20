@@ -5,9 +5,9 @@ description: Use when the user wants to turn a frame selection for MAE backbone 
 
 # Stage 3: extract selected frames as pretraining images
 
-Part of the pretraining data pipeline; the selections come from stage 2 (see
-[`docs/pretrain_frame_selection.md`](../../../docs/pretrain_frame_selection.md)). Methods are
-named in that doc (A1, A2, B, ...).
+Part of the pretraining data pipeline; the selections come from stage 2
+([`select-frames`](../select-frames/SKILL.md), methods `hier` and `fps`; background in
+[`docs/pretrain_frame_selection.md`](../../../docs/pretrain_frame_selection.md)).
 
 ## Layout
 
@@ -23,7 +23,7 @@ video keys must be unique across datasets; the script refuses to run otherwise.
 
 ## What it does
 
-`scripts/pretrain/extract_frames.py --methods A1 A2 B [--size 100k] [--workers 8]`
+`scripts/pretrain/extract_frames.py --methods hier fps [--size 100k] [--workers 8]`
 
 - Reads every needed video once (even if several methods chose frames from it). Frames less
   than 300 apart are decoded forward, farther ones are seeked to (much cheaper on long videos;
@@ -33,7 +33,7 @@ video keys must be unique across datasets; the script refuses to run otherwise.
   never upscaled.
 - Drops junk frames: gray std below 10 (blank/black/flat), or more than half the pixels brighter
   than 245 (blown out). Tinted and dark-but-visible frames are kept on purpose (they are real
-  sessions). The rule was calibrated on contact sheets of A2 and pool samples; the thresholds
+  sessions). The rule was calibrated on contact sheets of `fps` and pool samples; the thresholds
   live in `mighty_mouse/pretrain/frames.py`.
 - Exits with an error if more than 0.5% of a method's frames are junk overall, or 2% in any one
   dataset (after writing everything, so the dropped list can be inspected).
