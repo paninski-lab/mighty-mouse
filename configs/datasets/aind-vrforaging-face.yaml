@@ -1,0 +1,51 @@
+# Dataset config for _raw/aind-vrforaging-face/ (see scripts/preprocess/aind-vrforaging-face/README.md).
+# Three-quarter view of the right side of a head-fixed mouse's face; the labels are (corrected)
+# pseudo-labels from the corpus model. Raw names are already canonical, so every keypoint is mapped
+# one-to-one rather than with a {side} template. Every session is the animal's right side.
+
+exclude:
+  keypoints:
+  sessions:
+
+keypoints:
+  eye_back_right: eye_back_right
+  eye_bottom_right: eye_bottom_right
+  eye_front_right: eye_front_right
+  eye_top_right: eye_top_right
+  pupil_center_right: pupil_center_right
+  nose_tip: nose_tip
+  nose_top: nose_top
+  pad_top_right: pad_top_right
+  pad_side_right: pad_side_right
+  ear_top_right: ear_top_right
+  ear_tip_right: ear_tip_right
+  ear_bottom_right: ear_bottom_right
+  ear_base_right: ear_base_right
+  wrist_left: wrist_left
+  wrist_right: wrist_right
+
+sessions:
+  behavior_745300_2024-11-05_10-56-05: right
+  behavior_745300_2024-11-06_11-16-46: right
+  behavior_745300_2024-11-18_11-01-36: right
+  behavior_745300_2024-12-05_11-10-50: right
+  behavior_754559_2024-11-18_09-24-14: right
+  behavior_754559_2024-11-19_09-27-09: right
+  behavior_754559_2024-11-25_09-36-41: right
+  behavior_754575: right
+  behavior_754575_2024-10-27_13-08-47: right
+  behavior_754575_2024-10-29_13-26-32: right
+  behavior_754575_2024-11-15_13-29-25: right
+  behavior_754575_2024-11-21_13-02-27: right
+  behavior_754575_2024-11-27_13-38-51: right
+  behavior_754575_2024-12-05_13-11-25: right
+  behavior_754575_2024-12-06_13-20-24: right
+  behavior_754577_2024-11-30_10-40-38: right
+  behavior_754577_2024-12-02_10-12-02: right
+  behavior_754577_2024-12-03_09-45-27: right
+  behavior_754580_2024-11-18_09-23-54: right
+  behavior_754580_2024-11-20_09-18-22: right
+  behavior_754580_2024-11-25_09-37-30: right
+  behavior_754582_2024-12-10_11-24-04: right
+  behavior_754582_2024-12-16_11-31-36: right
+  video: right
