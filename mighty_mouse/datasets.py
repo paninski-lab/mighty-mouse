@@ -17,6 +17,7 @@ ALL_DATASETS = [
     "aind-dynamicforaging-bot",
     "aind-vbn-body",
     "aind-vbn-face",
+    "aind-vrforaging-face",
     "cavelli",
     "cazettes-side",
     "cheese-2d",
@@ -48,6 +49,7 @@ SHORT_NAMES = {
     "kaufman-water":     "kaufw",
     "murphy-1":          "murph-1",
     "aind-dynamicforaging-bot": "forb",
+    "aind-vrforaging-face": "vrff",
 }
 
 
